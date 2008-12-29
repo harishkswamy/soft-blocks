@@ -22,6 +22,12 @@ public class JEEBlocks extends GWTProject<GWTLayout>
         buildDeps("javax.servlet:servlet-api:jar:2.5");
     }
 
+    public JEEBlocks(String version)
+    {
+        this();
+        version(version);
+    }
+
     public String[] buildArtifacts()
     {
         return new String[] { clientJarSpec(), serverJarSpec() };
