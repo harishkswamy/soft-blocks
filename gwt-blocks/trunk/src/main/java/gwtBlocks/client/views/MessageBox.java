@@ -47,6 +47,12 @@ public class MessageBox extends DialogBox
         _msgBox.showBox(msg, ERROR_ICON_URL, ERROR_ICON_STYLE);
     }
 
+    public static void error(String msg, Command command)
+    {
+        _msgBox._command = command;
+        _msgBox.showBox(msg, ERROR_ICON_URL, ERROR_ICON_STYLE);
+    }
+
     private SimplePanel _iconContainer;
     private Image       _icon;
     private HTML        _msg;

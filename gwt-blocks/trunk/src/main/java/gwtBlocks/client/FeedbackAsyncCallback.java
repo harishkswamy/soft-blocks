@@ -17,7 +17,10 @@ import gwtBlocks.client.views.MessageBox;
 import gwtBlocks.shared.rpc.RPCMessageException;
 import gwtBlocks.shared.rpc.RPCServiceException;
 
+import java.util.Map;
+
 import com.google.gwt.i18n.client.ConstantsWithLookup;
+import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 
 /**
@@ -25,9 +28,10 @@ import com.google.gwt.user.client.rpc.AsyncCallback;
  */
 public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
 {
-    private static ProcessingIndicator _indicator;
-    private static int                 _callCount;
-    private static ConstantsWithLookup _rpcMessages;
+    private static ProcessingIndicator  _indicator;
+    private static int                  _callCount;
+    private static ConstantsWithLookup  _rpcMessages;
+    private static Map<String, Command> _rpcErrorCommands;
 
     public static void setProcessingIndicator(ProcessingIndicator indicator)
     {
@@ -37,6 +41,11 @@ public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
     public static void setRPCMessages(ConstantsWithLookup rpcMessages)
     {
         _rpcMessages = rpcMessages;
+    }
+
+    public static void setRPCErrorCommands(Map<String, Command> commands)
+    {
+        _rpcErrorCommands = commands;
     }
 
     private Barrier _barrier;
@@ -86,11 +95,11 @@ public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
         }
         catch (RPCMessageException e)
         {
-            MessageBox.alert(getMessage(e.getLocalizedMessage()));
+            MessageBox.alert(getMessage(e.getLocalizedMessage()), _rpcErrorCommands.get(e.getLocalizedMessage()));
         }
         catch (Throwable t)
         {
-            MessageBox.error(GwtBlocksMessages.pick.unhandledError());
+            MessageBox.error(GwtBlocksMessages.pick.unhandledError(), _rpcErrorCommands.get("unhandledError"));
         }
 
         if (_barrier != null)
