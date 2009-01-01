@@ -1,0 +1,95 @@
+@media print {
+	body {
+		font: 12pt Times, serif;
+	}
+}
+
+body.processing {
+	cursor: progress;
+}
+
+.gbk-ProcessingIndicator {
+	background-color: #F00;
+	color: #FFF;
+	border: 1px solid #BBB;
+}
+
+.gbk-ProcessingIndicator td {
+	padding: 4px;
+}
+
+.gbk-ProcessingIndicator .image {
+	width: 20px;
+	background: url(images/processingIndicator.gif) no-repeat center;
+}
+
+.gwt-DialogBox td.dialogMiddleCenter {
+	background-color: #F6F7F8;
+}
+
+.gwt-TextBox-Number {
+	text-align: right;
+}
+
+.gbk-buttonGroupSeparator {
+	color: #CCC;
+}
+
+/* = Icon Button Styles ===================================== */
+.gbk-iconButton {
+	
+}
+
+.gbk-iconButton-hover {
+	background: url(images/iconButtonHoverBkg.jpg) no-repeat center;
+}
+
+.gbk-iconButton-down {
+	background: url(images/iconButtonDownBkg.jpg) no-repeat center;
+}
+
+.gbk-iconTextButton {
+	cursor: pointer;
+}
+
+/* = Table styles ========================================== */
+.gbk-TableView {
+	background-color: #FFF;
+}
+
+.gbk-TableView table {
+	table-layout: fixed; /* This is not getting set from code */
+}
+
+.gbk-TableView .header {
+	background: url(images/grayGradient.jpg) bottom repeat-x;
+}
+
+.gbk-TableView .header {
+	border-bottom: 1px solid #CCC;
+}
+
+.gbk-TableView .header td {
+	border-right: 1px solid #CCC;
+}
+
+.gbk-TableView .body {
+	background-color: #DDD;
+}
+
+.gbk-TableView .body table {
+	background-color: #FFF;
+}
+
+.gbk-TableView .body tr.evenRow {
+	background-color: #F0F8FF;
+}
+
+.gbk-TableView td {
+	padding: 3px;
+}
+
+.gbk-TableView .body td {
+	border-right: 1px solid #CCC;
+	border-bottom: 1px solid #CCC;
+}
