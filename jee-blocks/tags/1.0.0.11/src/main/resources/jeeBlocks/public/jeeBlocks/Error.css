@@ -1,0 +1,38 @@
+html, body {
+	overflow: auto;
+}
+
+body {
+	background: url(images/arc-bkg.png) no-repeat top left;
+}
+
+h1 {
+	font-family: serif;
+	font-size: 400%;
+}
+
+table tr.headRow td {
+	border-bottom: 1px Solid #404040;
+}
+
+table tr.headRow td.icon {
+	width: 60px;
+}
+
+table tr.headRow td.text {
+	width: 90%;
+}
+
+#content {
+	position: absolute;
+	top: 90px;
+	left: 166px;
+	width: 75%;
+	height: 60%;
+	background: url(images/web-resource-watermark.jpg) no-repeat top left;
+}
+
+#msg {
+	font-size: 120%;
+	padding-top: 10px;
+}
