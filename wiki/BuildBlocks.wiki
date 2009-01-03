@@ -23,10 +23,10 @@ public class JBlocks extends JavaProject
 }
 }}}
 
-And, executing the above build code could be as simple as typing ...
+And, building the project jar with the above build code could be as simple as typing ...
 
 {{{
-C:\>bb <tasks>
+C:\>bb j:jar
 }}}
 
 Here's the help for the above build code.
