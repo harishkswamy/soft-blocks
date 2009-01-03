@@ -32,7 +32,6 @@ C:\>bb <tasks>
 Here's the help for the above build code.
 
 {{{
-
 Build Blocks
 Version : 0.8.0.SNAPSHOT
 --------------------------------------------------------------
@@ -59,11 +58,6 @@ Tasks available for j-blocks:
     install          : Builds and publishes the project's jar to the local repository.
     jar              : Builds and packages the project in a jar.
     test             : Builds and runs the test suite for the project.
-
-    Tasks from buildBlocks.gwtlib:
-
-    install          : Builds and publishes the project's client and server jars to the local repository.
-    jar              : Builds and packages the project in separate client and server jars.
 --------------------------------------------------------------
 }}}
 
