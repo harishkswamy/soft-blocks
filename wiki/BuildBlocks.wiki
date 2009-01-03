@@ -1,4 +1,4 @@
-#summary A build system for Java, of Java.
+#summary The build system for Java, of Java.
 
 = Introduction =
 
