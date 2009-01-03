@@ -1,8 +1,35 @@
-#summary Build Blocks homepage
+#summary A build system for Java, of Java.
 
 = Introduction =
 
-A build system for Java, of Java. [BuildBlocksGuide More ...]
+The code below might actually suffice to build a lot of Java projects.
+{{{
+@ProjectInfo(version = "1.0.0")
+public class JBlocks extends JavaProject
+{
+    public JBlocks()
+    {
+        super("1.5");
+
+        buildDeps("org.slf4j:slf4j-api:jar:1.5.0");
+
+        testDeps("junit:junit:jar:4.5", "cglib:cglib-nodep:jar:2.1_3", "org.objenesis:objenesis:jar:1.0",
+            "org.jmock:jmock:jar:2.4.0", "org.jmock:jmock-legacy:jar:2.4.0", "org.hamcrest:hamcrest-core:jar:1.1",
+            "org.hamcrest:hamcrest-library:jar:1.1");
+
+        runtimeDeps("org.slf4j:slf4j-api:jar:1.5.0", "ch.qos.logback:logback-core:jar:0.9.9",
+            "ch.qos.logback:logback-classic:jar:0.9.9");
+    }
+}
+}}}
+
+And, executing the above build code could be as simple as typing 
+
+{{{
+C:\>bb <tasks>
+}}}
+
+[BuildBlocksGuide More ...]
 
 = Status =
 
