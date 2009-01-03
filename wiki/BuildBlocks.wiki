@@ -70,3 +70,7 @@ Tasks available for j-blocks:
 Currently at 0.8.1.
 
 = Road Map =
+
+= Docs =
+
+  * [BuildBlocksGuide User's Guide]
