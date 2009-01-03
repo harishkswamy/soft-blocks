@@ -5,5 +5,8 @@ package buildBlocks;
  */
 public interface TaskContainer
 {
-    String prefix();
+    /**
+     * @return The container's fully qualified ID.
+     */
+    String qid();
 }

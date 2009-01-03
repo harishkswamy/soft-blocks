@@ -1,26 +1,30 @@
 package buildBlocks;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author hkrishna
  */
 public abstract class Project<L extends Layout> implements TaskContainer
 {
-    private String         _group;
-    private String         _id;
-    private String         _name;
-    private String         _version;
-    private String         _classifier;
+    private String                                     _group;
+    private String                                     _id;
+    private String                                     _qid;
+    private String                                     _name;
+    private String                                     _version;
+    private String                                     _classifier;
 
-    private L              _layout;
+    private L                                          _layout;
 
-    private List<Artifact> _buildDeps   = new ArrayList<Artifact>();
-    private List<Artifact> _testDeps    = new ArrayList<Artifact>();
-    private List<Artifact> _runtimeDeps = new ArrayList<Artifact>();
+    private List<Artifact>                             _buildDeps   = new ArrayList<Artifact>();
+    private List<Artifact>                             _testDeps    = new ArrayList<Artifact>();
+    private List<Artifact>                             _runtimeDeps = new ArrayList<Artifact>();
 
-    private TaskManager    _taskManager = new TaskManager(this);
+    private TaskManager                                _taskManager = new TaskManager();
+    private Map<Class<? extends Module<?>>, Module<?>> _modules     = new HashMap<Class<? extends Module<?>>, Module<?>>();
 
     protected Project(L layout)
     {
@@ -29,13 +33,18 @@ public abstract class Project<L extends Layout> implements TaskContainer
         if (info == null)
             throw new Error("Projects must be annotated with " + ProjectInfo.class);
 
-        _group = info.group();
+        _group = info.group().trim().length() == 0 ? getClass().getPackage().getName() : info.group();
         _id = info.id().trim().length() == 0 ? getClass().getSimpleName() : info.id();
+        _qid = _group + '.' + _id;
         _name = info.name().trim().length() == 0 ? _id : info.name();
         _version = info.version() + ".SNAPSHOT";
 
         _layout = layout;
+
+        _taskManager.register(this);
     }
+
+    // Public API ==================================================
 
     public String group()
     {
@@ -45,6 +54,11 @@ public abstract class Project<L extends Layout> implements TaskContainer
     public String id()
     {
         return _id;
+    }
+
+    public String qid()
+    {
+        return _qid;
     }
 
     public String name()
@@ -77,19 +91,39 @@ public abstract class Project<L extends Layout> implements TaskContainer
         return _classifier;
     }
 
-    public String prefix()
-    {
-        return "";
-    }
-
     public L layout()
     {
         return _layout;
     }
 
+    @SuppressWarnings("unchecked")
     public void modules(Module<?>... modules)
     {
-        _taskManager.register(modules);
+        for (Module<?> module : modules)
+            module((Class<? extends Module<?>>) module.getClass(), module);
+    }
+
+    public void module(Class<? extends Module<?>> moduleClass, Module<?> module)
+    {
+        if (_modules.containsKey(moduleClass))
+        {
+            System.out.println("WARNING: Skipping " + module + " registration; a module is already registered for "
+                + moduleClass);
+            return;
+        }
+
+        _modules.put(moduleClass, module);
+        _taskManager.register(module);
+    }
+
+    public <T extends Module<?>> T module(Class<T> moduleClass)
+    {
+        T module = moduleClass.cast(_modules.get(moduleClass));
+
+        if (module == null)
+            throw new Error(String.format("Module %s has not been registered in the project.", moduleClass));
+
+        return module;
     }
 
     /**
@@ -157,25 +191,12 @@ public abstract class Project<L extends Layout> implements TaskContainer
         return null;
     }
 
-    public void build(String... tasks)
+    public void execute(String... tasks)
     {
-        if (tasks.length == 0)
-            help();
-        else
-        {
-            System.out.println(String.format("Building %s...", name()));
-            System.out.println();
-
-            long start = System.currentTimeMillis();
-
-            _taskManager.execute(tasks);
-
-            long end = System.currentTimeMillis();
-
-            System.out.println(String.format("Build completed in %ss.", (end - start) / 1000.0));
-            System.out.println();
-        }
+        _taskManager.execute(tasks);
     }
+
+    // Common tasks ==============================================
 
     @TaskInfo(desc = "Prints the project's help text.")
     public void help()
@@ -194,6 +215,8 @@ public abstract class Project<L extends Layout> implements TaskContainer
     {
         new FileTask(layout().targetPath()).delete();
     }
+
+    // Object impl ====================================================
 
     @Override
     public String toString()

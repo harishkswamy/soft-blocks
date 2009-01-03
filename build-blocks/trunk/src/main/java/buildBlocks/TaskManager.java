@@ -1,45 +1,38 @@
 package buildBlocks;
 
-import static buildBlocks.Context.*;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
 /**
  * @author hkrishna
  */
-public class TaskManager
+class TaskManager
 {
     private class TaskSet
     {
         private class Task
         {
-            private String  _id;
-            private Method  _method;
-            private boolean _done;
+            private Method   _method;
+            private String   _id;
+            private String   _desc;
+            private String[] _deps;
+            private boolean  _done;
 
             private Task(Method method)
             {
-                _id = _container.prefix().length() == 0 ? method.getName() : _container.prefix() + ':'
-                    + method.getName();
+                TaskInfo info = method.getAnnotation(TaskInfo.class);
+
+                if (info == null)
+                    throw new Error("Tasks must be annotated with " + TaskInfo.class);
+
                 _method = method;
-            }
-
-            private TaskInfo taskInfo()
-            {
-                return _method.getAnnotation(TaskInfo.class);
-            }
-
-            private String id()
-            {
-                return _id;
-            }
-
-            private String desc()
-            {
-                return taskInfo().desc();
+                _id = _container.qid() + ':' + _method.getName();
+                _desc = info.desc();
+                _deps = info.deps();
             }
 
             private void execute()
@@ -47,7 +40,7 @@ public class TaskManager
                 if (_done)
                     return;
 
-                TaskSet.this.execute(taskInfo().deps());
+                TaskSet.this.execute(_deps);
 
                 try
                 {
@@ -71,16 +64,16 @@ public class TaskManager
 
             private void printHelp()
             {
-                if (id().length() > 16)
-                    System.out.println(String.format("    %s%n%-20s : %s", id(), "", desc()));
+                if (_method.getName().length() > 16)
+                    System.out.println(String.format("    %s%n%-20s : %s", _method.getName(), "", _desc));
                 else
-                    System.out.println(String.format("    %-16s : %s", id(), desc()));
+                    System.out.println(String.format("    %-16s : %s", _method.getName(), _desc));
             }
 
             @Override
             public String toString()
             {
-                return String.format("%s : %s", _id, taskInfo().desc());
+                return String.format("%s : %s", _id, _desc);
             }
         }
 
@@ -119,19 +112,7 @@ public class TaskManager
 
         private Task get(String name)
         {
-            Task task = tasks().get(name);
-
-            if (task == null)
-            {
-                if (_container.prefix().length() == 0)
-                    throw new BuildError(String.format("Task %s is not defined in the project.", name, _container
-                        .prefix()), false, true);
-                else
-                    throw new BuildError(String.format("Task %s is not defined in module %s.", name, _container
-                        .prefix()), false, true);
-            }
-
-            return task;
+            return tasks().get(name);
         }
 
         private void execute(String... taskNames)
@@ -148,7 +129,7 @@ public class TaskManager
         private void printHelp()
         {
             System.out.println();
-            System.out.println(String.format("    Tasks from %s:", _container.getClass().getSimpleName()));
+            System.out.println(String.format("    Tasks from %s:", _container.qid()));
             System.out.println();
 
             for (Task task : tasks().values())
@@ -156,50 +137,58 @@ public class TaskManager
         }
     }
 
-    private SortedMap<String, TaskSet> _taskSets = new TreeMap<String, TaskSet>();
+    /**
+     * TaskSets are keyed by TaskContainer's qualified id.
+     */
+    private List<TaskSet> _taskSets = new ArrayList<TaskSet>();
 
-    TaskManager(TaskContainer container)
+    TaskManager()
     {
-        addContainer(container);
     }
 
     void register(TaskContainer... containers)
     {
         for (TaskContainer container : containers)
-            addContainer(container);
-    }
-
-    private void addContainer(TaskContainer container)
-    {
-        TaskSet oldTaskSet = _taskSets.put(container.prefix(), new TaskSet(container));
-
-        if (ctx().traceOn() && oldTaskSet != null)
-        {
-            String fmt = "Task container %s is being replaced by %s.%nMake sure to use a unique prefix if this is unintentional.";
-            System.out.println(String.format(fmt, oldTaskSet._container, container));
-        }
+            _taskSets.add(new TaskSet(container));
     }
 
     void execute(String... taskIds)
     {
         for (String taskId : taskIds)
         {
-            String[] taskSpec = taskId.split(":");
+            int idx = taskId.lastIndexOf(':');
 
-            String prefix = taskSpec.length > 1 ? taskSpec[0] : "";
+            String cid = idx == -1 ? null : taskId.substring(0, idx);
 
-            TaskSet taskSet = _taskSets.get(prefix);
+            TaskSet.Task task = null;
 
-            if (taskSet == null)
-                throw new BuildError(String.format("%s module has not been registered.", prefix), false, true);
+            for (TaskSet taskSet : _taskSets)
+            {
+                if (cid == null || taskSet._container.qid().endsWith(cid))
+                {
+                    TaskSet.Task tTask = taskSet.get(taskId.substring(idx + 1));
 
-            taskSet.execute(taskSpec[taskSpec.length - 1]);
+                    if (tTask == null)
+                        continue;
+
+                    if (task != null)
+                        throw new BuildError(
+                            "More than one task match the request, please qualify the task name further.", false, true);
+
+                    task = tTask;
+                }
+            }
+
+            if (task == null)
+                throw new BuildError(String.format("Task %s does not match any task.", taskId), false, true);
+
+            task.execute();
         }
     }
 
     void printHelp()
     {
-        for (TaskSet taskSet : _taskSets.values())
+        for (TaskSet taskSet : _taskSets)
             taskSet.printHelp();
     }
 }

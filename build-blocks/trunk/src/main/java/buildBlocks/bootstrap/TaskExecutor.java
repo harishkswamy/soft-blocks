@@ -6,25 +6,23 @@ import buildBlocks.BuildError;
 import buildBlocks.Project;
 import buildBlocks.ProjectInfo;
 import buildBlocks.java.JavaLayout;
-import buildBlocks.java.JavaProject;
 
 /**
  * @author hkrishna
  */
 @ProjectInfo(group = "com.google.code.soft-blocks", version = "0.8.0")
-public final class Builder extends JavaProject<JavaLayout>
+public final class TaskExecutor extends Project<JavaLayout>
 {
     public static void main(String[] args)
     {
-        new Builder().run(args);
+        new TaskExecutor().run(args);
     }
 
-    private String     _bbClasspath;
     private Project<?> _project;
 
-    private Builder()
+    private TaskExecutor()
     {
-        super("1.5", new JavaLayout());
+        super(new JavaLayout());
     }
 
     private void run(String[] args)
@@ -32,18 +30,32 @@ public final class Builder extends JavaProject<JavaLayout>
         try
         {
             System.out.println();
+            //System.out.println("Preparing project...");
 
-            BuilderArgs bArgs = new BuilderArgs(args);
+            // Parse arguments
+            ArgsParser bArgs = new ArgsParser(args);
 
-            _bbClasspath = bArgs.bbClasspath();
+            // Load project
+            ProjectLoader loader = new ProjectLoader(this, bArgs.bbHome(), bArgs.bbClasspath());
+            _project = loader.loadProject(bArgs.exportProject());
 
-            BuilderModule module = new BuilderModule(this, bArgs.bbHome());
-            _project = module.buildProject(bArgs.exportProject());
-
+            // Execute tasks
             if (bArgs.projectTasks().length == 0)
                 printHelp(true, true);
             else
-                _project.build(bArgs.projectTasks());
+            {
+                System.out.println(String.format("Building %s...", _project.name()));
+                System.out.println();
+
+                long start = System.currentTimeMillis();
+
+                _project.execute(bArgs.projectTasks());
+
+                long end = System.currentTimeMillis();
+
+                System.out.println(String.format("Build succeeded in %ss.", (end - start) / 1000.0));
+                System.out.println();
+            }
         }
         catch (Throwable t)
         {
@@ -84,15 +96,9 @@ public final class Builder extends JavaProject<JavaLayout>
         System.out.println("    bb <options> <tasks>");
 
         System.out.println("Options:");
-        BuilderArgs.printOptions();
+        ArgsParser.printOptions();
 
         System.out.println("--------------------------------------------------------------");
         System.out.println();
-    }
-
-    @Override
-    public String mainClasspath()
-    {
-        return _bbClasspath;
     }
 }

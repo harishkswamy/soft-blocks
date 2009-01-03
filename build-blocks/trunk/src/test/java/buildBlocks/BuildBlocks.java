@@ -9,7 +9,7 @@ public class BuildBlocks extends Project<JavaLayout>
 {
     public static void main(String[] args)
     {
-        new BuildBlocks().build("help", "jar", "pack");
+        new BuildBlocks().execute("help", "jar", "pack");
     }
     
     private BuildBlocks()

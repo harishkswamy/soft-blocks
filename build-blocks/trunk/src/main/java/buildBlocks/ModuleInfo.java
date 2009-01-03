@@ -12,7 +12,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface ModuleInfo
 {
-    String name() default "";
+    String group() default "";
 
-    String prefix();
+    String id() default "";
+
+    String name() default "";
 }

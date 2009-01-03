@@ -7,7 +7,7 @@ import buildBlocks.BuildError;
 /**
  * @author hkrishna
  */
-public class BuilderArgs
+public class ArgsParser
 {
     static void printOptions()
     {
@@ -21,7 +21,7 @@ public class BuilderArgs
     private boolean  _exportProject;
     private String[] _projectTasks;
 
-    BuilderArgs(String[] args)
+    ArgsParser(String[] args)
     {
         parse(args);
     }

@@ -17,21 +17,23 @@ import buildBlocks.java.JavaModule;
 /**
  * @author hkrishna
  */
-@ModuleInfo(prefix = "_bbbm_")
-public class BuilderModule extends JavaModule<Builder>
+@ModuleInfo(id = "_bbbm_")
+public class ProjectLoader extends JavaModule<TaskExecutor>
 {
     private String _bbHome;
+    private String _bbClasspath;
 
-    public BuilderModule(Builder builder, String bbHome)
+    public ProjectLoader(TaskExecutor taskExecutor, String bbHome, String bbClasspath)
     {
-        super(builder);
+        super("1.5", taskExecutor);
 
         _bbHome = bbHome;
+        _bbClasspath = bbClasspath;
     }
 
-    Project<?> buildProject(boolean exportBuilder)
+    Project<?> loadProject(boolean exportBuilder)
     {
-        Builder b = project();
+        TaskExecutor b = project();
 
         b.layout().projectPath(ctx().property("build.dir", "build"));
 
@@ -59,7 +61,7 @@ public class BuilderModule extends JavaModule<Builder>
             {
                 jar();
 
-                new FileTask(b.jarPath()).copyToDir(_bbHome + "lib/ext", true);
+                new FileTask(jarPath()).copyToDir(_bbHome + "lib/ext", true);
             }
 
             return project;
@@ -73,7 +75,7 @@ public class BuilderModule extends JavaModule<Builder>
     @SuppressWarnings("unchecked")
     private Class<Project> discoverProject(String packageDir, ClassLoader loader) throws Exception
     {
-        Builder b = project();
+        TaskExecutor b = project();
 
         String[] fileNames = new File(b.layout().targetMainPath(), packageDir).list();
 
@@ -112,5 +114,11 @@ public class BuilderModule extends JavaModule<Builder>
 
         throw new Error("Unable to find project class.\nHint: Make sure the project class is annotated with "
             + ProjectInfo.class);
+    }
+
+    @Override
+    public String mainClasspath()
+    {
+        return _bbClasspath;
     }
 }

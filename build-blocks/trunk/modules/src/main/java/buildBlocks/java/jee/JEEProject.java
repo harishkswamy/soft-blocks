@@ -1,14 +1,17 @@
 package buildBlocks.java.jee;
 
-import buildBlocks.java.JavaProject;
+import buildBlocks.Project;
+import buildBlocks.java.JavaModule;
 
 /**
  * @author hkrishna
  */
-public class JEEProject<L extends JEELayout> extends JavaProject<L>
+public class JEEProject extends Project<JEELayout>
 {
-    protected JEEProject(String javaVersion, L layout)
+    protected JEEProject(String javaVersion)
     {
-        super(javaVersion, layout);
+        super(new JEELayout());
+
+        modules(new JavaModule<JEEProject>(javaVersion, this), new JEEModule<JEEProject>(this));
     }
 }

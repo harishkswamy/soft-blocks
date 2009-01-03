@@ -2,7 +2,9 @@ package buildBlocks.java.jee;
 
 import buildBlocks.Artifact;
 import buildBlocks.FileTask;
+import buildBlocks.Module;
 import buildBlocks.ModuleInfo;
+import buildBlocks.Project;
 import buildBlocks.TaskInfo;
 import buildBlocks.ZipTask;
 import buildBlocks.java.JavaModule;
@@ -10,22 +12,21 @@ import buildBlocks.java.JavaModule;
 /**
  * @author hkrishna
  */
-@ModuleInfo(prefix = "jee")
-public class JEEModule<P extends JEEProject<?>> extends JavaModule<P>
+@ModuleInfo(group = "buildBlocks", id = "jee")
+public class JEEModule<P extends Project<? extends JEELayout>> extends Module<P>
 {
     public JEEModule(P project)
     {
         super(project);
     }
 
-    @TaskInfo(desc = "Cleans the project's main and webapp target spaces.")
+    @TaskInfo(desc = "Cleans the project's main and webapp target spaces.", deps = { "buildBlocks.j:clean" })
     public void clean()
     {
-        super.clean();
         new FileTask(project().layout().targetWebappPath()).delete();
     }
 
-    @TaskInfo(desc = "Deploys the application locally in the target space.", deps = { "jar" })
+    @TaskInfo(desc = "Deploys the application locally in the target space.", deps = { "buildBlocks.j:jar" })
     public void deploy()
     {
         P p = project();
@@ -35,8 +36,9 @@ public class JEEModule<P extends JEEProject<?>> extends JavaModule<P>
         fileTask.copyToDir(l.targetWebappPath(), false);
 
         String libPath = l.targetWebinfLib();
+        JavaModule<?> jModule = p.module(JavaModule.class);
 
-        fileTask.reset(p.jarPath()).copyToDir(libPath, false);
+        fileTask.reset(jModule.jarPath()).copyToDir(libPath, false);
 
         for (Artifact artifact : p.runtimeDeps())
             fileTask.reset(artifact.getPath()).copyToDir(libPath, false);
@@ -48,7 +50,8 @@ public class JEEModule<P extends JEEProject<?>> extends JavaModule<P>
         P p = project();
         JEELayout l = p.layout();
 
-        String warPathName = p.jarPath().replaceFirst("\\.jar", ".war");
+        JavaModule<?> jModule = p.module(JavaModule.class);
+        String warPathName = jModule.jarPath().replaceFirst("\\.jar", ".war");
 
         new ZipTask(warPathName).from(l.targetWebappPath()).exclude(null).add().createJar();
     }

@@ -5,7 +5,7 @@ package buildBlocks;
  */
 public abstract class Module<P extends Project<?>> implements TaskContainer
 {
-    private String _prefix;
+    private String _qid;
     private String _name;
     private P      _project;
 
@@ -16,14 +16,17 @@ public abstract class Module<P extends Project<?>> implements TaskContainer
         if (info == null)
             throw new Error("Modules must be annotated with " + ModuleInfo.class);
 
-        _prefix = info.prefix();
-        _name = info.name().trim().length() == 0 ? getClass().getSimpleName() : info.name();
+        String group = info.group().trim().length() == 0 ? getClass().getPackage().getName() : info.group();
+        String id = info.id().trim().length() == 0 ? getClass().getSimpleName() : info.id();
+
+        _name = info.name().trim().length() == 0 ? id : info.name();
         _project = project;
+        _qid = group + '.' + id;
     }
 
-    public String prefix()
+    public String qid()
     {
-        return _prefix;
+        return _qid;
     }
 
     public String name()
@@ -34,6 +37,11 @@ public abstract class Module<P extends Project<?>> implements TaskContainer
     public P project()
     {
         return _project;
+    }
+
+    protected void execute(String... taskIds)
+    {
+        _project.execute(taskIds);
     }
 
     @Override

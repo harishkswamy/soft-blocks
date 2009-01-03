@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface ProjectInfo
 {
-    String group();
+    String group() default "";
 
     String id() default "";
 
