@@ -1,5 +1,7 @@
 #summary The build system for Java, of Java.
 
+<wiki:toc max_depth="1" />
+
 = Introduction =
 
 The code below might actually suffice to build a lot of Java projects.
