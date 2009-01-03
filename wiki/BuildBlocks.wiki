@@ -65,6 +65,6 @@ Tasks available for j-blocks:
 
 = Status =
 
-Currently at 0.8.0.
+Currently at 0.8.1.
 
 = Road Map =
