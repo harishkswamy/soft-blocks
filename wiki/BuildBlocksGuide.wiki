@@ -1,5 +1,5 @@
 #summary One-sentence summary of this page.
-#sidebar TableOfContents
+#sidebar BuildBlocksGuideTOC
 = Introduction =
 
 Add your content here.
