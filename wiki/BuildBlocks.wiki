@@ -1,0 +1,11 @@
+#summary Build Blocks homepage
+
+= Introduction =
+
+A build system for Java, of Java. [BuildBlocksGuide More ...]
+
+= Status =
+
+Currently at 0.8.0.
+
+= Road Map =
