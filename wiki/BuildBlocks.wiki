@@ -29,7 +29,7 @@ And, building the project jar with the above build code could be as simple as ty
 C:\>bb j:jar
 }}}
 
-Here's the help for the above build code.
+And here's the help text ...
 
 {{{
 Build Blocks
