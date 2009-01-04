@@ -40,7 +40,7 @@ class TaskManager
                 if (_done)
                     return;
 
-                TaskManager.this.execute(_deps);
+                TaskSet.this.execute(_deps);
 
                 try
                 {
@@ -113,6 +113,17 @@ class TaskManager
         private Task get(String name)
         {
             return tasks().get(name);
+        }
+
+        private void execute(String... taskNames)
+        {
+            for (String taskName : taskNames)
+            {
+                if (taskName.indexOf(':') > -1)
+                    TaskManager.this.execute(taskName);
+                else
+                    get(taskName).execute();
+            }
         }
 
         private void printHelp()
