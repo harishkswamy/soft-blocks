@@ -40,7 +40,7 @@ class TaskManager
                 if (_done)
                     return;
 
-                TaskSet.this.execute(_deps);
+                TaskManager.this.execute(_deps);
 
                 try
                 {
@@ -115,17 +115,6 @@ class TaskManager
             return tasks().get(name);
         }
 
-        private void execute(String... taskNames)
-        {
-            for (String taskName : taskNames)
-            {
-                if (taskName.indexOf(':') > -1)
-                    TaskManager.this.execute(taskName);
-                else
-                    get(taskName).execute();
-            }
-        }
-
         private void printHelp()
         {
             System.out.println();
@@ -137,9 +126,6 @@ class TaskManager
         }
     }
 
-    /**
-     * TaskSets are keyed by TaskContainer's qualified id.
-     */
     private List<TaskSet> _taskSets = new ArrayList<TaskSet>();
 
     TaskManager()
@@ -159,6 +145,7 @@ class TaskManager
             int idx = taskId.lastIndexOf(':');
 
             String cid = idx == -1 ? null : taskId.substring(0, idx);
+            String taskName = taskId.substring(idx + 1);
 
             TaskSet.Task task = null;
 
@@ -166,7 +153,7 @@ class TaskManager
             {
                 if (cid == null || taskSet._container.qid().endsWith(cid))
                 {
-                    TaskSet.Task tTask = taskSet.get(taskId.substring(idx + 1));
+                    TaskSet.Task tTask = taskSet.get(taskName);
 
                     if (tTask == null)
                         continue;
