@@ -19,7 +19,8 @@ public abstract class Project<L extends Layout> implements TaskContainer
 
     private L                                          _layout;
 
-    private List<Artifact>                             _buildDeps   = new ArrayList<Artifact>();
+    private List<Artifact>                             _deps        = new ArrayList<Artifact>();
+    private List<Artifact>                             _compileDeps = new ArrayList<Artifact>();
     private List<Artifact>                             _testDeps    = new ArrayList<Artifact>();
     private List<Artifact>                             _runtimeDeps = new ArrayList<Artifact>();
 
@@ -126,27 +127,52 @@ public abstract class Project<L extends Layout> implements TaskContainer
         return module;
     }
 
-    /**
-     * Dependencies required to build the source.
-     */
-    public void buildDeps(String... deps)
+    private void addDeps(List<Artifact> cache, String[] deps)
     {
+        if (deps == null)
+            return;
+
         for (String dep : deps)
-            _buildDeps.add(Artifact.find(dep));
-    }
+        {
+            Artifact artifact = Artifact.find(dep);
 
-    public List<Artifact> buildDeps()
-    {
-        return _buildDeps;
+            if (!cache.contains(artifact))
+                cache.add(artifact);
+        }
     }
 
     /**
-     * Dependencies required to build the test suite.
+     * Dependencies required to compile, test and run the source.
+     */
+    public void deps(String... deps)
+    {
+        addDeps(_deps, deps);
+    }
+
+    public List<Artifact> deps()
+    {
+        return _deps;
+    }
+
+    /**
+     * Dependencies required only to compile the source.
+     */
+    public void compileDeps(String... deps)
+    {
+        addDeps(_compileDeps, deps);
+    }
+
+    public List<Artifact> compileDeps()
+    {
+        return _compileDeps;
+    }
+
+    /**
+     * Dependencies required only to compile and run the test suite.
      */
     public void testDeps(String... deps)
     {
-        for (String dep : deps)
-            _testDeps.add(Artifact.find(dep));
+        addDeps(_testDeps, deps);
     }
 
     public List<Artifact> testDeps()
@@ -155,12 +181,11 @@ public abstract class Project<L extends Layout> implements TaskContainer
     }
 
     /**
-     * Dependencies required at runtime.
+     * Dependencies required only to run the source.
      */
     public void runtimeDeps(String... deps)
     {
-        for (String dep : deps)
-            _runtimeDeps.add(Artifact.find(dep));
+        addDeps(_runtimeDeps, deps);
     }
 
     public List<Artifact> runtimeDeps()
@@ -172,16 +197,23 @@ public abstract class Project<L extends Layout> implements TaskContainer
     {
         for (Project<?> p : projects)
         {
-            _buildDeps.addAll(p.buildDeps());
+            _deps.addAll(p.deps());
+            _compileDeps.addAll(p.compileDeps());
             _testDeps.addAll(p.testDeps());
             _runtimeDeps.addAll(p.runtimeDeps());
 
-            buildDeps(p.buildArtifacts());
+            deps(p.artifacts());
+            compileDeps(p.compileArtifacts());
             runtimeDeps(p.runtimeArtifacts());
         }
     }
 
-    protected String[] buildArtifacts()
+    protected String[] artifacts()
+    {
+        return null;
+    }
+
+    protected String[] compileArtifacts()
     {
         return null;
     }
