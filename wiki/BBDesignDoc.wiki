@@ -1,3 +1,6 @@
+#sidebar BuildBlocksTOC
+<wiki:toc max_depth="1" />
+
 = Introduction =
 
 Add your content here.
