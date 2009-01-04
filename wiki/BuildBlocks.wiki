@@ -66,11 +66,3 @@ Tasks available for j-blocks:
     test             : Builds and runs the test suite for the project.
 --------------------------------------------------------------
 }}}
-
-= Status =
-
-Currently at 0.8.0.
-
-= Docs =
-
-  * [BuildBlocksGuide User's Guide]
