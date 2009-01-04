@@ -4,7 +4,7 @@
 
 = Introduction =
 
-The code below might actually suffice to build a lot of Java projects.
+The code below could actually suffice to build a lot of Java projects.
 {{{
 @ProjectInfo(version = "1.0.0")
 public class JBlocks extends JavaProject
@@ -31,7 +31,11 @@ And, building the project jar with the above build code could be as simple as ty
 C:\>bb j:jar
 }}}
 
-And here's what else you could do with the above build code ...
+And to see what else the above build code could do, just type ...
+
+{{{
+C:\>bb
+}}}
 
 {{{
 Build Blocks
