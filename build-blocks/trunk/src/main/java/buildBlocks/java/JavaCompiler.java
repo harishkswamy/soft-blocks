@@ -3,6 +3,8 @@ package buildBlocks.java;
 import java.util.ArrayList;
 import java.util.List;
 
+import buildBlocks.Context;
+
 /**
  * @author hkrishna
  */
@@ -23,6 +25,12 @@ public abstract class JavaCompiler
 
     public void compile(String sourcePath, String classPath, String targetPath)
     {
+        if (Context.ctx().traceOn())
+        {
+            System.out.println("Source path: " + sourcePath);
+            System.out.println("Class path: " + classPath);
+        }
+        
         if (!invokeCompiler(sourcePath, classPath, targetPath))
         {
             System.out.println();
