@@ -5,5 +5,5 @@
 
 = Status =
 
-Released 0.8.0
-Development 0.9.0
+  * Released 0.8.0
+  * Development 0.9.0
