@@ -50,11 +50,12 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
         if (_mainClasspath != null)
             return _mainClasspath;
 
-        List<Artifact> buildDeps = project().buildDeps();
-
         StringBuilder b = new StringBuilder();
 
-        for (Artifact artifact : buildDeps)
+        for (Artifact artifact : project().deps())
+            b.append(artifact.getPath()).append(File.pathSeparatorChar);
+
+        for (Artifact artifact : project().compileDeps())
             b.append(artifact.getPath()).append(File.pathSeparatorChar);
 
         return _mainClasspath = b.toString();
@@ -75,6 +76,9 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
         for (Artifact artifact : testDeps)
             b.append(artifact.getPath()).append(File.pathSeparatorChar);
 
+        for (Artifact artifact : project().runtimeDeps())
+            b.append(artifact.getPath()).append(File.pathSeparatorChar);
+
         b.append(project().layout().targetMainPath());
 
         return _testClasspath = b.toString();
@@ -88,11 +92,12 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
         if (_runtimeClasspath != null)
             return _runtimeClasspath;
 
-        List<Artifact> runtimeDeps = project().runtimeDeps();
-
         StringBuilder b = new StringBuilder();
 
-        for (Artifact artifact : runtimeDeps)
+        for (Artifact artifact : project().deps())
+            b.append(artifact.getPath()).append(File.pathSeparatorChar);
+
+        for (Artifact artifact : project().runtimeDeps())
             b.append(artifact.getPath()).append(File.pathSeparatorChar);
 
         return _runtimeClasspath = b.toString();

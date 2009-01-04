@@ -48,8 +48,8 @@ public class GWTApp<P extends Project<? extends GWTLayout>> extends Module<P>
 
         P p = project();
 
-        p.buildDeps(userJar, windowsJar, servletJar);
-        p.runtimeDeps(servletJar);
+        p.deps(servletJar);
+        p.compileDeps(userJar, windowsJar);
     }
 
     public String moduleName()

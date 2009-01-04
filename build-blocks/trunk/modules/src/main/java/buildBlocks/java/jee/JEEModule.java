@@ -40,6 +40,9 @@ public class JEEModule<P extends Project<? extends JEELayout>> extends Module<P>
 
         fileTask.reset(jModule.jarPath()).copyToDir(libPath, false);
 
+        for (Artifact artifact : p.deps())
+            fileTask.reset(artifact.getPath()).copyToDir(libPath, false);
+
         for (Artifact artifact : p.runtimeDeps())
             fileTask.reset(artifact.getPath()).copyToDir(libPath, false);
     }
