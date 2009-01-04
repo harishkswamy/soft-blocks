@@ -27,13 +27,13 @@ public class JBlocks extends JavaProject
 And, building the project jar with the above build code could be as simple as typing ...
 
 {{{
-C:\>bb j:jar
+C:\j-blocks>bb j:jar
 }}}
 
 And to see what else the above build code could do, just type ...
 
 {{{
-C:\>bb
+C:\j-blocks>bb
 }}}
 
 {{{
