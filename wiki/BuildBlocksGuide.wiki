@@ -1,4 +1,3 @@
-#summary Build Blocks Guide
 #sidebar BuildBlocksTOC
 
 = Introduction =
