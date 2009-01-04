@@ -1,4 +1,4 @@
-  * [BuildBlocks Introduction]
-    * Status
+  * [BuildBlocks Home]
+  * [BBIntro Introduction]
   * [BBDesignDoc Design Doc]
   * [BBUserGuide User Guide]
