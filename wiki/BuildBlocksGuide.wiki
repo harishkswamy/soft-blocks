@@ -1,5 +1,5 @@
 #summary Build Blocks Guide
-#sidebar BuildBlocksGuideTOC
+#sidebar BuildBlocksTOC
 
 = Introduction =
 
