@@ -38,7 +38,7 @@ C:\>bb
 
 {{{
 Build Blocks
-Version : 0.8.0.SNAPSHOT
+Version : 0.9.0.SNAPSHOT
 --------------------------------------------------------------
 Usage:
     bb <options> <tasks>
@@ -68,7 +68,7 @@ Tasks available for j-blocks:
 
 = Status =
 
-Currently at 0.8.1.
+Currently at 0.8.0.
 
 = Docs =
 
