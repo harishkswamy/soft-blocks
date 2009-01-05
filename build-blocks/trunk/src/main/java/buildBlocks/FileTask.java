@@ -252,7 +252,10 @@ public class FileTask
 
     private boolean includeFile(File file)
     {
-        String path = file.getPath().replaceAll("\\\\", "/");
+        String path = file.getPath().replace('\\', '/');
+
+        if (file.isDirectory())
+            path += '/';
 
         Pattern includes = includes(), excludes = excludes();
 
