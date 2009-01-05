@@ -30,7 +30,7 @@ public final class TaskExecutor extends Project<JavaLayout>
         try
         {
             System.out.println();
-            //System.out.println("Preparing project...");
+            System.out.println("Loading project...");
 
             // Parse arguments
             ArgsParser bArgs = new ArgsParser(args);
@@ -38,6 +38,8 @@ public final class TaskExecutor extends Project<JavaLayout>
             // Load project
             ProjectLoader loader = new ProjectLoader(this, bArgs.bbHome(), bArgs.bbClasspath());
             _project = loader.loadProject(bArgs.exportProject());
+
+            System.out.println();
 
             // Execute tasks
             if (bArgs.projectTasks().length == 0)
