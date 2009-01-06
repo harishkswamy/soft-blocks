@@ -7,10 +7,11 @@
 Our goal to _build a project_ suggests we want to _do_ something and the best way to express this intent in computers, 
 I believe, is through a programming language. Java fits this bill and its tools go beyond in helping us achieve this goal.
 
-We, however, do the same set things to build most projects and that means we can abstract away these common tasks into 
+We, however, do the same set of things to build most projects and that means we can abstract away these common tasks into 
 an API and extend / compose / reuse it for all projects.
 
-Case in point, the code below could actually suffice to build a lot of Java projects by simply extending the JavaProject API.
+Case in point, the code below could actually suffice to build a lot of Java projects by simply extending the !JavaProject
+framework class.
 {{{
 @ProjectInfo(version = "1.0.0")
 public class JBlocks extends JavaProject
