@@ -11,6 +11,21 @@ import java.util.regex.Pattern;
  */
 public class FileTask
 {
+    private abstract class FileVisitor
+    {
+        protected void enterDir(File file)
+        {
+        }
+
+        protected void exitDir(File file)
+        {
+        }
+
+        protected void visitFile(File file)
+        {
+        }
+    }
+
     private static String _defaultExcludes = ".*/\\.svn(/.*)?";
 
     public static void defaultExcludes(String expr)
@@ -18,27 +33,29 @@ public class FileTask
         _defaultExcludes = expr;
     }
 
-    private File    _source;
-    private String  _includeExpr;
-    private String  _excludeExpr;
+    private File        _basePath;
+    private String      _includeExpr;
+    private String      _excludeExpr;
 
-    private Pattern _include;
-    private Pattern _exclude;
+    private Pattern     _include;
+    private Pattern     _exclude;
 
-    private boolean _includeDirs;
-    private boolean _includeFiles;
-    private boolean _forceWrite;
+    private boolean     _includeDirs;
+    private boolean     _includeFiles;
+    private boolean     _forceWrite;
 
-    public FileTask(String path)
+    private FileVisitor _fileVisitor;
+
+    public FileTask(String basePath)
     {
-        source(path);
+        source(basePath);
     }
 
-    public FileTask reset(String source)
+    public FileTask reset(String basePath)
     {
         reset();
 
-        return source(source);
+        return source(basePath);
     }
 
     private FileTask reset()
@@ -53,38 +70,40 @@ public class FileTask
         _includeFiles = false;
         _forceWrite = false;
 
+        _fileVisitor = null;
+
         return this;
     }
 
     private FileTask source(String path)
     {
-        _source = new File(path);
+        _basePath = new File(path);
 
         return this;
     }
 
-    public FileTask select(String expr)
+    public FileTask select(String regExpr)
     {
-        _includeExpr = expr;
+        _includeExpr = regExpr;
 
         return this;
     }
 
-    public FileTask exclude(String expr)
+    public FileTask exclude(String regExpr)
     {
-        if (expr == null)
+        if (regExpr == null)
             _excludeExpr = _defaultExcludes;
         else if (_defaultExcludes == null)
-            _excludeExpr = expr;
+            _excludeExpr = regExpr;
         else
-            _excludeExpr = new StringBuilder(expr).append('|').append(_defaultExcludes).toString();
+            _excludeExpr = new StringBuilder(regExpr).append('|').append(_defaultExcludes).toString();
 
         return this;
     }
 
-    public FileTask excludeOnly(String expr)
+    public FileTask excludeOnly(String regExpr)
     {
-        _excludeExpr = expr;
+        _excludeExpr = regExpr;
 
         return this;
     }
@@ -122,39 +141,39 @@ public class FileTask
 
     private List<File> get()
     {
-        List<File> files = new ArrayList<File>();
+        final List<File> files = new ArrayList<File>();
 
-        if (_source.isDirectory())
-            addFiles(_source, files);
+        if (_basePath.isDirectory())
+        {
+            _fileVisitor = new FileVisitor()
+            {
+                @Override
+                protected void enterDir(File file)
+                {
+                    if (_includeDirs)
+                        files.add(file);
+                }
+
+                @Override
+                protected void visitFile(File file)
+                {
+                    if (_includeFiles)
+                        files.add(file);
+                }
+            };
+
+            traverse(_basePath);
+        }
 
         reset();
 
         return files;
     }
 
-    private void addFiles(File dir, List<File> files)
-    {
-        for (File file : dir.listFiles())
-        {
-            if (!includeFile(file))
-                continue;
-
-            if (file.isDirectory())
-            {
-                if (_includeDirs)
-                    files.add(file);
-
-                addFiles(file, files);
-            }
-            else if (_includeFiles)
-                files.add(file);
-        }
-    }
-
     public FileTask copyToFile(String path, boolean forceWrite)
     {
-        if (_source.isDirectory())
-            throw new Error(String.format("Cannot copy directory %s to file %s.", _source, path));
+        if (_basePath.isDirectory())
+            throw new Error(String.format("Cannot copy directory %s to file %s.", _basePath, path));
 
         File target = new File(path);
 
@@ -163,7 +182,8 @@ public class FileTask
 
         _forceWrite = forceWrite;
 
-        copy(_source, target);
+        if (_basePath.exists())
+            copy(_basePath, target);
 
         return reset();
     }
@@ -177,89 +197,94 @@ public class FileTask
 
         _forceWrite = forceWrite;
 
-        if (_source.isFile())
-            target = new File(target, _source.getName());
+        if (_basePath.isFile())
+            target = new File(target, _basePath.getName());
 
-        copy(_source, target);
+        if (_basePath.exists())
+            copy(_basePath, target);
 
         return reset();
     }
 
-    private void copy(File srcFile, File destFile)
+    private void copy(final File src, final File dest)
     {
-        if (!srcFile.exists())
-            return;
-
-        if (srcFile.isDirectory())
+        _fileVisitor = new FileVisitor()
         {
-            if (destFile.isFile())
-                throw new Error("Destination path " + destFile + " must be a directory.");
-
-            String[] fileNames = srcFile.list();
-            String srcPath = srcFile.getPath(), destPath = destFile.getPath();
-
-            for (String fileName : fileNames)
-                copy(new File(srcPath, fileName), new File(destPath, fileName));
-        }
-        else
-        {
-            if (!includeFile(srcFile))
-                return;
-
-            try
+            @Override
+            protected void visitFile(File srcFile)
             {
-                File parent = destFile.getParentFile();
+                File destFile = new File(dest, srcFile.getPath().substring(src.getPath().length()));
 
-                if (parent != null && !parent.exists() && !parent.mkdirs())
-                    throw new Error("Unable to create directories for: " + destFile);
+                try
+                {
+                    File parent = destFile.getParentFile();
 
-                // If overwrite or the destination file does not exist or it is older than the source file, 
-                // then copy
-                if (_forceWrite || destFile.createNewFile() || destFile.lastModified() < srcFile.lastModified())
-                    Utils.writeFile(destFile, Utils.readFile(srcFile));
+                    if (parent != null && !parent.exists() && !parent.mkdirs())
+                        throw new Error("Unable to create directories for: " + destFile);
+
+                    // If overwrite or the destination file does not exist or it is older than the source file, 
+                    // then copy
+                    if (_forceWrite || destFile.createNewFile() || destFile.lastModified() < srcFile.lastModified())
+                        Utils.writeFile(destFile, Utils.readFile(srcFile));
+                }
+                catch (IOException e)
+                {
+                    throw new Error("Unable to copy " + srcFile + " to " + destFile, e);
+                }
             }
-            catch (IOException e)
-            {
-                throw new Error("Unable to copy file " + _source + " to " + destFile, e);
-            }
-        }
+        };
+
+        traverse(src);
     }
 
     public FileTask delete()
     {
-        delete(_source);
+        if (!_basePath.exists())
+            return this;
+
+        _fileVisitor = new FileVisitor()
+        {
+            @Override
+            protected void exitDir(File file)
+            {
+                if (!file.delete())
+                    throw new Error("Unable to delete directory " + file.getPath());
+            }
+
+            @Override
+            protected void visitFile(File file)
+            {
+                if (!file.delete())
+                    throw new Error("Unable to delete file " + file.getPath());
+            }
+        };
+
+        traverse(_basePath);
 
         return reset();
     }
 
-    private void delete(File file)
-    {
-        if (!file.exists())
-            return;
-
-        if (file.isDirectory())
-        {
-            for (String fileName : file.list())
-                delete(new File(file.getPath(), fileName));
-        }
-
-        if (!includeFile(file))
-            return;
-
-        if (!file.delete())
-            throw new Error("Unable to delete " + file.getPath());
-    }
-
-    private boolean includeFile(File file)
+    private void traverse(File file)
     {
         String path = file.getPath().replace('\\', '/');
 
+        if (excludes() != null && excludes().matcher(path).matches())
+            return;
+
+        boolean includeFile = includes() == null || includes().matcher(path).matches();
+
         if (file.isDirectory())
-            path += '/';
+        {
+            if (includeFile)
+                _fileVisitor.enterDir(file);
 
-        Pattern includes = includes(), excludes = excludes();
+            for (String fileName : file.list())
+                traverse(new File(file.getPath(), fileName));
 
-        return (includes == null || includes.matcher(path).matches())
-            && (excludes == null || !excludes.matcher(path).matches());
+            if (includeFile)
+                _fileVisitor.exitDir(file);
+        }
+        else if (includeFile)
+            _fileVisitor.visitFile(file);
     }
 }
