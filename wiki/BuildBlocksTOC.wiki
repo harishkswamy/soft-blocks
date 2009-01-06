@@ -1,4 +1,4 @@
-  * [BuildBlocks Home]
-  * [BBIntro Introduction]
-  * [BBDesignDoc Design Doc]
-  * [BBUserGuide User Guide]
+  * [BuildBlocks Build Blocks]
+    * [BBIntro Introduction]
+    * [BBDesignDoc Design Doc]
+    * [BBUserGuide User Guide]
