@@ -150,7 +150,7 @@ public class FileTask
                 @Override
                 protected void enterDir(File file)
                 {
-                    if (_includeDirs)
+                    if (_includeDirs && file != _basePath)
                         files.add(file);
                 }
 
