@@ -3,5 +3,18 @@
 
 = Introduction =
 
-The goal of this framework is to build a project and so `Project` is our fundamental object. And every
-project is built by performing a set of tasks and that gives us our next core object - the `Task`.
+The goal of this framework is to build a project and so `Project` is our fundamental object. 
+
+{{{
+public class Project
+{
+}
+}}}
+
+And every project is built by performing a set of tasks and that gives us our next object - the `Task`.
+
+{{{
+public class Task
+{
+}
+}}}
