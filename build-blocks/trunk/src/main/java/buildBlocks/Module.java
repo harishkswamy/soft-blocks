@@ -47,6 +47,6 @@ public abstract class Module<P extends Project<?>> implements TaskContainer
     @Override
     public String toString()
     {
-        return name();
+        return qid();
     }
 }
