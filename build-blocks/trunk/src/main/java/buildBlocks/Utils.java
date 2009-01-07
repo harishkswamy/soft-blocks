@@ -10,7 +10,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
 import java.net.URL;
+import java.net.URLClassLoader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
@@ -146,7 +148,86 @@ public class Utils
         return str;
     }
 
-    public static void java(String[] javaArgs, String classpath, String className, String[] classArgs)
+    public static URLClassLoader newClassLoader(String classpath)
+    {
+        try
+        {
+            String[] paths = classpath.split(File.pathSeparator);
+
+            URL[] urls = new URL[paths.length];
+
+            int i = 0;
+
+            for (String path : paths)
+                urls[i++] = new File(path).toURL();
+
+            return new URLClassLoader(urls);
+        }
+        catch (Exception e)
+        {
+            throw new Error(e);
+        }
+    }
+
+    public static Class<?> loadClass(ClassLoader cl, String className)
+    {
+        try
+        {
+            return cl.loadClass(className);
+        }
+        catch (Exception e)
+        {
+            throw new Error(e);
+        }
+    }
+
+    /**
+     * Loads and runs a static method.
+     */
+    public static Object run(String classpath, String className, String methodName, Class<?>[] methodParams,
+        Object[] methodArgs)
+    {
+        URLClassLoader cl = newClassLoader(classpath);
+        return run(cl, className, methodName, methodParams, methodArgs);
+    }
+
+    /**
+     * Loads and runs a static method.
+     */
+    public static Object run(ClassLoader cl, String className, String methodName, Class<?>[] methodParams,
+        Object[] methodArgs)
+    {
+        try
+        {
+            Class<?> classObj = cl.loadClass(className);
+            Method method = classObj.getMethod(methodName, methodParams);
+            return method.invoke(null, methodArgs);
+        }
+        catch (Exception e)
+        {
+            throw new Error(e);
+        }
+    }
+
+    /**
+     * Loads and runs an instance method.
+     */
+    public static Object call(ClassLoader cl, String className, Class<?>[] ctorParamTypes, Object[] ctorArgs,
+        String methodName, Class<?>[] mParamTypes, Object[] mArgs)
+    {
+        try
+        {
+            Class<?> clz = cl.loadClass(className);
+            Object obj = clz.getConstructor(ctorParamTypes).newInstance(ctorArgs);
+            return clz.getMethod(methodName, mParamTypes).invoke(obj, mArgs);
+        }
+        catch (Exception e)
+        {
+            throw new Error(e);
+        }
+    }
+
+    public static int java(String[] javaArgs, String classpath, String className, String[] classArgs)
     {
         if (javaArgs == null)
             javaArgs = new String[0];
@@ -167,10 +248,10 @@ public class Utils
 
         System.arraycopy(classArgs, 0, cArr, idx, classArgs.length);
 
-        Utils.exec(cArr);
+        return Utils.exec(cArr);
     }
 
-    public static void exec(String... command)
+    public static int exec(String... command)
     {
         StringBuilder b = new StringBuilder();
 
@@ -186,6 +267,7 @@ public class Utils
             pipeStream(p.getInputStream(), System.out);
             pipeStream(p.getErrorStream(), System.out);
             p.waitFor();
+            return p.exitValue();
         }
         catch (Exception e)
         {

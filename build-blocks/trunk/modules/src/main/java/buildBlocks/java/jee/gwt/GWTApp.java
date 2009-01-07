@@ -76,7 +76,7 @@ public class GWTApp<P extends Project<? extends GWTLayout>> extends Module<P>
         GWTLayout l = p.layout();
         JavaModule<?> jModule = p.module(JavaModule.class);
 
-        return new StringBuilder(l.mainJavaPath()).append(File.pathSeparator).append(l.targetMainPath()).append(
+        return new StringBuilder(l.mainJavaPath()).append(File.pathSeparator).append(l.mainBinPath()).append(
             File.pathSeparator).append(jModule.mainClasspath()).toString();
     }
 

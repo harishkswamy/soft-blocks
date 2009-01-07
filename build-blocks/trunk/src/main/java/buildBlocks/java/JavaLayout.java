@@ -11,9 +11,12 @@ public class JavaLayout extends Layout
     private String _test      = "test";
     private String _java      = "java";
     private String _resources = "resources";
+    private String _bin       = "bin";
 
     private String _sourceMainPath;
     private String _sourceTestPath;
+    private String _targetMainPath;
+    private String _targetTestPath;
 
     /**
      * @return src/main/ by default.
@@ -70,18 +73,40 @@ public class JavaLayout extends Layout
     }
 
     /**
-     * @return target/main by default.
+     * @return target/main/ by default.
      */
     public String targetMainPath()
     {
-        return new StringBuilder(targetPath()).append(_main).toString();
+        if (_targetMainPath == null)
+            _targetMainPath = new StringBuilder(targetPath()).append(_main).append('/').toString();
+
+        return _targetMainPath;
     }
 
     /**
-     * @return target/test by default.
+     * @return target/test/ by default.
      */
     public String targetTestPath()
     {
-        return new StringBuilder(targetPath()).append(_test).toString();
+        if (_targetTestPath == null)
+            _targetTestPath = new StringBuilder(targetPath()).append(_test).append('/').toString();
+
+        return _targetTestPath;
+    }
+
+    /**
+     * @return target/main/bin by default.
+     */
+    public String mainBinPath()
+    {
+        return new StringBuilder(targetMainPath()).append(_bin).toString();
+    }
+
+    /**
+     * @return target/test/bin by default.
+     */
+    public String testBinPath()
+    {
+        return new StringBuilder(targetTestPath()).append(_bin).toString();
     }
 }

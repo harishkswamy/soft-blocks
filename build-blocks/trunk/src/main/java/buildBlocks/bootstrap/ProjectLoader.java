@@ -38,14 +38,13 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
         b.layout().projectPath(ctx().property("build.dir", "build"));
 
         if (!new File(b.layout().mainJavaPath()).exists())
-            throw new Error("Project class has not been implemented.");
+            throw new Error("Project not found.");
 
         compile();
 
         try
         {
-            URLClassLoader classLoader = new URLClassLoader(
-                new URL[] { new File(b.layout().targetMainPath()).toURL() }, getClass().getClassLoader());
+            URLClassLoader classLoader = new URLClassLoader(new URL[] { new File(b.layout().mainBinPath()).toURL() });
 
             Project<?> project = discoverProject(".", classLoader).newInstance();
 
@@ -77,14 +76,14 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
     {
         TaskExecutor b = project();
 
-        String[] fileNames = new File(b.layout().targetMainPath(), packageDir).list();
+        String[] fileNames = new File(b.layout().mainBinPath(), packageDir).list();
 
         if (fileNames == null)
             throw new Error("Unable to find project class.");
 
         for (String fileName : fileNames)
         {
-            File file = new File(b.layout().targetMainPath(), packageDir + '/' + fileName);
+            File file = new File(b.layout().mainBinPath(), packageDir + '/' + fileName);
 
             if (file.isDirectory())
             {

@@ -64,14 +64,14 @@ public class GWTLib<P extends Project<? extends JavaLayout>> extends Module<P>
         P p = project();
         JavaLayout l = p.layout();
 
-        String clientExcludes = ".*/server(/.*)?";
+        String clientExcludes = ".*/server";
 
-        ZipTask zipTask = new ZipTask(clientJarPath()).to("").from(l.targetMainPath()).exclude(clientExcludes).add();
+        ZipTask zipTask = new ZipTask(clientJarPath()).to("").from(l.mainBinPath()).exclude(clientExcludes).add();
         zipTask.from(l.mainJavaPath()).exclude(clientExcludes).add().createJar();
 
-        String serverExcludes = ".*/client(/.*)?|.*/generators(/.*)?|.*/public(/.*)?|.*.gwt.xml";
+        String serverExcludes = ".*/client|.*/generators|.*/public|.*.gwt.xml";
 
-        zipTask.reset(serverJarPath()).to("").from(l.targetMainPath()).exclude(serverExcludes).add().createJar();
+        zipTask.reset(serverJarPath()).to("").from(l.mainBinPath()).exclude(serverExcludes).add().createJar();
     }
 
     @TaskInfo(desc = "Builds and publishes the project's client and server jars to the local repository.", deps = { "jar" })
