@@ -26,7 +26,7 @@ public class FileTask
         }
     }
 
-    private static String _defaultExcludes = ".*/\\.svn(/.*)?";
+    private static String _defaultExcludes = ".*/\\.svn|.*/CVS|.*\\.cvsignore|.*/SCCS|.*/vssver.scc";
 
     public static void defaultExcludes(String expr)
     {
