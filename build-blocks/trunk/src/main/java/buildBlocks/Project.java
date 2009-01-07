@@ -10,22 +10,23 @@ import java.util.Map;
  */
 public abstract class Project<L extends Layout> implements TaskContainer
 {
-    private String                                     _group;
-    private String                                     _id;
-    private String                                     _qid;
-    private String                                     _name;
-    private String                                     _version;
-    private String                                     _classifier;
+    private String                                  _group;
+    private String                                  _id;
+    private String                                  _qid;
+    private String                                  _name;
+    private String                                  _version;
+    private String                                  _classifier;
 
-    private L                                          _layout;
+    private L                                       _layout;
 
-    private List<Artifact>                             _deps        = new ArrayList<Artifact>();
-    private List<Artifact>                             _compileDeps = new ArrayList<Artifact>();
-    private List<Artifact>                             _testDeps    = new ArrayList<Artifact>();
-    private List<Artifact>                             _runtimeDeps = new ArrayList<Artifact>();
+    private List<Artifact>                          _deps        = new ArrayList<Artifact>();
+    private List<Artifact>                          _compileDeps = new ArrayList<Artifact>();
+    private List<Artifact>                          _testDeps    = new ArrayList<Artifact>();
+    private List<Artifact>                          _runtimeDeps = new ArrayList<Artifact>();
 
-    private TaskManager                                _taskManager = new TaskManager();
-    private Map<Class<? extends Module<?>>, Module<?>> _modules     = new HashMap<Class<? extends Module<?>>, Module<?>>();
+    private TaskManager                             _taskManager = new TaskManager();
+    @SuppressWarnings("unchecked")
+    private Map<Class<? extends Module>, Module<?>> _modules     = new HashMap<Class<? extends Module>, Module<?>>();
 
     protected Project(L layout)
     {
@@ -97,20 +98,23 @@ public abstract class Project<L extends Layout> implements TaskContainer
         return _layout;
     }
 
-    @SuppressWarnings("unchecked")
     public void modules(Module<?>... modules)
     {
         for (Module<?> module : modules)
-            module((Class<? extends Module<?>>) module.getClass(), module);
+            module(module.getClass(), module);
     }
 
-    public void module(Class<? extends Module<?>> moduleClass, Module<?> module)
+    @SuppressWarnings("unchecked")
+    public void module(Class<? extends Module> moduleClass, Module<?> module)
     {
-        if (_modules.containsKey(moduleClass))
+        Module<?> oldMod = _modules.get(moduleClass);
+
+        if (oldMod != null)
         {
-            System.out.println("WARNING: Skipping " + module + " registration; a module is already registered for "
-                + moduleClass);
-            return;
+            _taskManager.unregister(oldMod);
+
+            String fmt = "WARNING: Overwriting module %s with module %s.";
+            System.out.println(String.format(fmt, oldMod, module));
         }
 
         _modules.put(moduleClass, module);

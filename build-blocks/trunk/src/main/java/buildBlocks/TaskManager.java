@@ -148,6 +148,18 @@ class TaskManager
         for (TaskContainer container : containers)
             _taskSets.add(new TaskSet(container));
     }
+    
+    void unregister(TaskContainer... containers)
+    {
+        for (TaskContainer container : containers)
+        {
+            for (int i = 0; i < _taskSets.size(); i++)
+            {
+                if (_taskSets.get(i)._container.equals(container))
+                    _taskSets.remove(i);
+            }
+        }
+    }
 
     void execute(String... taskIds)
     {
