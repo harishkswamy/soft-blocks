@@ -1,25 +1,24 @@
 package build;
 
 import buildBlocks.ProjectInfo;
-import buildBlocks.java.jee.gwt.GWTLayout;
+import buildBlocks.java.JavaProject;
 import buildBlocks.java.jee.gwt.GWTLib;
-import buildBlocks.java.jee.gwt.GWTProject;
 
 /**
  * @author hkrishna
  */
 @ProjectInfo(group = "com.google.code.soft-blocks", id = "jee-blocks", version = "1.0.0")
-public class JEEBlocks extends GWTProject<GWTLayout>
+public class JEEBlocks extends JavaProject
 {
     public JEEBlocks()
     {
-        super("1.5", new GWTLayout());
+        super("1.5");
 
         modules(new GWTLib<JEEBlocks>(this));
 
-        projectDeps(new JBlocks("1.0.0.7"));
+        projectDeps(new JBlocks("1.0.0.103"));
 
-        buildDeps("javax.servlet:servlet-api:jar:2.5");
+        compileDeps("javax.servlet:servlet-api:jar:2.5");
     }
 
     public JEEBlocks(String version)
@@ -28,13 +27,15 @@ public class JEEBlocks extends GWTProject<GWTLayout>
         version(version);
     }
 
-    public String[] buildArtifacts()
+    @Override
+    public String[] artifacts()
     {
-        return new String[] { clientJarSpec(), serverJarSpec() };
+        return new String[] { module(GWTLib.class).serverJarSpec() };
     }
 
-    public String[] runtimeArtifacts()
+    @Override
+    public String[] compileArtifacts()
     {
-        return new String[] { serverJarSpec() };
+        return new String[] { module(GWTLib.class).clientJarSpec() };
     }
 }
