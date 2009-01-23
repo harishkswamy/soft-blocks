@@ -83,17 +83,17 @@ blockquote,q {
 }
 
 .gbk-infoPng {
-	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='jBlocks/images/info.png');
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='jeeBlocks/images/info.png');
 }
 
 .gbk-warningPng {
-	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='jBlocks/images/warning.png');
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='jeeBlocks/images/warning.png');
 }
 
 .gbk-errorPng {
-	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='jBlocks/images/error.png');
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='jeeBlocks/images/error.png');
 }
 
 .gbk-forbiddenPng {
-	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='jBlocks/images/forbidden.png');
+	filter: progid:DXImageTransform.Microsoft.AlphaImageLoader(src='jeeBlocks/images/forbidden.png');
 }
