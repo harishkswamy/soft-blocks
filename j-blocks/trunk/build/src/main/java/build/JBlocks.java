@@ -1,8 +1,6 @@
 package build;
 
 import buildBlocks.ProjectInfo;
-import buildBlocks.TaskInfo;
-import buildBlocks.java.JavaModule;
 import buildBlocks.java.JavaProject;
 import buildBlocks.java.jee.gwt.GWTLib;
 
