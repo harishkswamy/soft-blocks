@@ -14,8 +14,6 @@
 
 package jBlocks.server;
 
-import jBlocks.server.IOUtils;
-
 import java.io.File;
 
 import org.junit.Test;
@@ -27,7 +25,8 @@ public class IOUtilsTest
     {
         try
         {
-            IOUtils.copyFile(new File(IOUtilsTest.class.getResource("Small-utf-8.txt").getPath()), new File("src/test/resources/Small-utf-8-Copy.txt"), true);
+            IOUtils.copyFile(new File(IOUtilsTest.class.getResource("Small-utf-8.txt").getPath()), new File(
+                "src/test/resources/Small-utf-8-Copy.txt"), true);
         }
         catch (Exception e)
         {
