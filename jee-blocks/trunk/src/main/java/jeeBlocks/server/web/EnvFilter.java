@@ -2,6 +2,7 @@ package jeeBlocks.server.web;
 
 import jBlocks.server.AppContext;
 import jBlocks.server.sql.DataManager;
+import jBlocks.server.sql.SqlSession;
 
 import java.io.IOException;
 
@@ -29,10 +30,8 @@ public class EnvFilter implements Filter
         String dataSourceId = filterConfig.getInitParameter("data-source-id");
         String jdbcJndiName = filterConfig.getInitParameter("data-source-jndi-name");
 
-        DataManager dataManager = new DataManager(dataSourceId, jdbcJndiName);
-        dataManager.setAppCtx(_webContext);
-
-        _webContext.put(DataManager.class, dataManager);
+        // This will register the DataManager in the context
+        new DataManager(_webContext, jdbcJndiName, dataSourceId);
 
         filterConfig.getServletContext().setAttribute(AppContext.KEY, _webContext);
     }
@@ -50,6 +49,12 @@ public class EnvFilter implements Filter
         {
             // Update the session to replicate it in a cluster.
             _webContext.applySession();
+
+            // End context SQL session, if exists
+            SqlSession sqlSession = _webContext.getFromThread(SqlSession.class);
+
+            if (sqlSession != null)
+                sqlSession.close();
 
             // Cleaup the thread.
             _webContext.cleanupThread();
