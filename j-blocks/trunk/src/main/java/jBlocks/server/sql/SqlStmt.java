@@ -14,18 +14,24 @@
 
 package jBlocks.server.sql;
 
+import jBlocks.server.ReflectUtils;
+
+import java.sql.PreparedStatement;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author hkrishna
  */
 class SqlStmt
 {
-    private String         _stmt;
-    private List<SqlField> _fields;
-    private List<SqlParam> _params;
-    private List<SqlParam> _dynParams;
-    private SqlMap         _sqlMap;
+    private String              _stmt;
+    private List<SqlField>      _fields;
+    private List<SqlParam>      _params;
+    private List<SqlParam>      _dynParams;
+    private SqlMap              _sqlMap;
+    private Map<String, Object> _props;
 
     public String getStmt()
     {
@@ -82,10 +88,28 @@ class SqlStmt
         _sqlMap = sqlMap;
     }
 
+    public void setProperty(String name, Object value)
+    {
+        if (_props == null)
+            _props = new HashMap<String, Object>();
+
+        _props.put(name, value);
+    }
+    
+    public void applyProperties(PreparedStatement stmt)
+    {
+        if (_props == null)
+            return;
+
+        for (Map.Entry<String, Object> prop : _props.entrySet())
+            ReflectUtils.invokeMethod(stmt, prop.getKey(), prop.getValue());
+    }
+    
     @Override
     public String toString()
     {
-        return "Statement: " + _stmt + ", Fields: " + _fields + ", Parameters: " + _params + ", Dynamic Parameters: "
-            + _dynParams + ", SQL Map: " + _sqlMap;
+        StringBuilder b = new StringBuilder("Statement: ").append(_stmt).append(", Fields: ").append(_fields);
+        b.append(", Parameters: ").append(_params).append(", Dynamic Parameters: ").append(_dynParams);
+        return b.append(", SQL Map: ").append(_sqlMap).toString();
     }
 }

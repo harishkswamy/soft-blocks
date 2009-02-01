@@ -22,7 +22,7 @@ import java.io.PrintWriter;
  */
 public class AggregateException extends RuntimeException
 {
-    private static final long serialVersionUID = 3761409720300681522L;
+    private static final long serialVersionUID = 1L;
 
     /**
      * Wraps and returns the provided exception in AggregateException.
@@ -47,7 +47,7 @@ public class AggregateException extends RuntimeException
             return ae;
         }
 
-        StringBuffer msgBuffer = new StringBuffer();
+        StringBuilder msgBuffer = new StringBuilder();
         t = getRootCause(t, msgBuffer);
         String msgs = msgBuffer.toString();
         msgs = (message == null) ? msgs : (message + "\nCause: " + msgs);
@@ -62,7 +62,7 @@ public class AggregateException extends RuntimeException
             return new AggregateException(t, msgs);
     }
 
-    private static Throwable getRootCause(Throwable t, StringBuffer msgbuffer)
+    private static Throwable getRootCause(Throwable t, StringBuilder msgbuffer)
     {
         msgbuffer.append(t.getClass().getName() + ": " + t.getLocalizedMessage());
 

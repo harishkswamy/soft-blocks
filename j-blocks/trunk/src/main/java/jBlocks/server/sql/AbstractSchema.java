@@ -15,21 +15,9 @@
 package jBlocks.server.sql;
 
 import jBlocks.server.AggregateException;
-import jBlocks.server.AppContext;
 import jBlocks.server.IOUtils;
-import jBlocks.server.ReflectUtils;
 
 import java.net.URL;
-import java.sql.BatchUpdateException;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -40,528 +28,137 @@ import java.util.Properties;
  * This class is thread-safe and and is intended to be used as a singleton.
  * <p>
  * 
- * 
  * @author hkrishna
  */
 public abstract class AbstractSchema
 {
-    private static final ThreadLocal<Connection>                     _threadConnection = new ThreadLocal<Connection>();
-    private static final ThreadLocal<Map<String, PreparedStatement>> _statements       = new ThreadLocal<Map<String, PreparedStatement>>();
-
-    private DataManager                                              _dataManager;
-    private Map<String, SqlStmt>                                     _sqlStmts;
+    private DataManager          _dataManager;
+    private Map<String, SqlStmt> _stmts;
 
     protected AbstractSchema(DataManager dataManager, String sqlPropsFileName)
     {
+        if (dataManager == null)
+            throw new IllegalArgumentException("DataManager must be provided.");
+
         _dataManager = dataManager;
 
         Properties sqlProps = IOUtils.loadProperties(getClass().getResource(sqlPropsFileName + ".sql.properties"));
 
-        URL url = getClass().getResource(sqlPropsFileName + "." + dataManager.dbId() + ".sql.properties");
+        URL url = getClass().getResource(sqlPropsFileName + '.' + _dataManager.dbId() + ".sql.properties");
 
         if (url != null)
             sqlProps.putAll(IOUtils.loadProperties(url));
 
-        _sqlStmts = new SqlMapParser().parse(sqlProps);
+        _stmts = new SqlMapParser().parse(sqlProps);
     }
 
-    // Public methods =========================================================================
+    protected DataManager dataManager()
+    {
+        return _dataManager;
+    }
+
+    protected SqlStmt stmt(String stmtId)
+    {
+        return _stmts.get(stmtId);
+    }
+
+    /**
+     * @return The {@link SqlSession} for the current thread.
+     */
+    protected SqlSession session()
+    {
+        return _dataManager.threadSession();
+    }
 
     public void startTransaction()
     {
-        try
+        for (int i = 0;; i++)
         {
-            Connection conn = _threadConnection.get();
+            try
+            {
+                session().rollback();
 
-            if (conn != null)
-                throw new IllegalAccessException(
-                    "There is already a transaction in progress for this thread; you must complete that transaction by calling commit() or rollback() before starting a new one.");
+                break;
+            }
+            catch (Exception e)
+            {
+                _dataManager.discardThreadSession();
 
-            conn = newConnection();
-
-            _threadConnection.set(conn);
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to start JDBC transaction.");
+                if (i > 0)
+                    throw AggregateException.with(e);
+            }
         }
     }
 
     public void commit()
     {
-        Connection conn = _threadConnection.get();
-        _threadConnection.remove();
-        commit(conn);
+        session().commit();
     }
 
     public void rollback()
     {
-        Connection conn = _threadConnection.get();
-        _threadConnection.remove();
-        rollback(conn);
+        session().rollback();
     }
 
-    // Protected methods ======================================================================
-
-    protected AppContext appCtx()
+    protected void setFetchSize(String stmtKey, int size)
     {
-        return _dataManager.appCtx();
+        _stmts.get(stmtKey).setProperty("setFetchSize", size);
     }
 
     protected int selectInt(String stmtId, Object paramModel)
     {
-        List<Integer> result = executeQuery(_sqlStmts.get(stmtId + ".select.sql"), paramModel,
-            new ResultHandler<Integer>()
-            {
-                public List<Integer> handle(ResultSet result) throws Exception
-                {
-                    List<Integer> list = new ArrayList<Integer>();
-
-                    if (result.next())
-                        list.add(result.getInt(1));
-                    else
-                        list.add(0);
-
-                    return list;
-                }
-            });
-
-        return result.get(0);
+        return session().selectInt(stmt(stmtId), paramModel);
     }
 
-    /**
-     * @return The object or null if no row was selected.
-     */
-    protected <T> T selectOne(final String stmtId, Object paramModel)
+    protected <T> T selectOne(String stmtId, Object paramModel)
     {
-        List<T> list = select(stmtId, paramModel);
-        return list.size() > 0 ? list.get(0) : null;
+        return session().selectOne(stmt(stmtId), paramModel);
     }
 
-    protected <T> List<T> select(final String stmtId, Object paramModel)
+    protected <T> List<T> select(String stmtId, Object paramModel)
     {
-        return select(stmtId, paramModel, null);
+        return session().select(stmt(stmtId), paramModel);
     }
 
-    protected <T> List<T> select(final String stmtId, Object paramModel, RowCallback<T> callback)
+    protected <T> List<T> select(String stmtId, Object paramModel, RowCallback<T> callback)
     {
-        SqlStmt sqlStmt = _sqlStmts.get(stmtId + ".select.sql");
-
-        return executeQuery(sqlStmt, paramModel, new ResultBuilder<T>(sqlStmt, callback));
+        return session().select(stmt(stmtId), paramModel, callback);
     }
 
-    protected void addInsertBatch(String stmtId, Object model)
+    protected void addBatch(String stmtId, Object param)
     {
-        addBatch(stmtId + ".insert.sql", model);
+        session().addBatch(stmt(stmtId), param);
     }
 
-    protected int[] insertBatch(String stmtId)
+    protected int[] executeBatch(String stmtId)
     {
-        stmtId = stmtId + ".insert.sql";
-
-        int[] result = executeBatch(stmtId);
-
-        clearBatch(stmtId);
-
-        return result;
+        return session().executeBatch(stmt(stmtId));
     }
 
-    protected void clearInsertBatch(String stmtId)
+    protected int executeUpdate(String stmtId, Object param)
     {
-        clearBatch(stmtId + ".insert.sql");
+        return session().executeUpdate(stmt(stmtId), param);
     }
 
-    protected void addUpdateBatch(String stmtId, Object model)
+    protected int executeAndCommit(String stmtId, Object param)
     {
-        addBatch(stmtId + ".update.sql", model);
-    }
+        SqlSession session = _dataManager.newSession();
 
-    protected int[] updateBatch(String stmtId)
-    {
-        stmtId = stmtId + ".update.sql";
-
-        int[] result = executeBatch(stmtId);
-
-        clearBatch(stmtId);
-
-        return result;
-    }
-
-    protected void clearUpdateBatch(String stmtId)
-    {
-        clearBatch(stmtId + ".update.sql");
-    }
-
-    protected void addDeleteBatch(String stmtId, Object model)
-    {
-        addBatch(stmtId + ".delete.sql", model);
-    }
-
-    protected int[] deleteBatch(String stmtId)
-    {
-        stmtId = stmtId + ".delete.sql";
-
-        int[] result = executeBatch(stmtId);
-
-        clearBatch(stmtId);
-
-        return result;
-    }
-
-    protected void clearDeleteBatch(String stmtId)
-    {
-        clearBatch(stmtId + ".delete.sql");
-    }
-
-    @Deprecated
-    protected void insert(String stmtId, Object model, boolean autoId)
-    {
-        if (autoId)
-            ReflectUtils.invokeMethod(model, "setId", new Object[] { selectInt(stmtId, null) });
-
-        executeUpdate(_sqlStmts.get(stmtId + ".insert.sql"), model, null);
-    }
-
-    protected void insert(String stmtId, Object model)
-    {
-        executeUpdate(_sqlStmts.get(stmtId + ".insert.sql"), model, null);
-    }
-
-    protected void insertAndCommit(String stmtId, Object model)
-    {
-        Connection conn = newConnection();
-        executeUpdate(_sqlStmts.get(stmtId + ".insert.sql"), model, conn);
-        commit(conn);
-    }
-
-    protected int update(String stmtId, Object model)
-    {
-        return executeUpdate(_sqlStmts.get(stmtId + ".update.sql"), model, null);
-    }
-
-    protected int updateAndCommit(String stmtId, Object model)
-    {
-        Connection conn = newConnection();
-        int count = executeUpdate(_sqlStmts.get(stmtId + ".update.sql"), model, conn);
-        commit(conn);
-        return count;
-    }
-
-    protected int delete(String stmtId, Object model)
-    {
-        return executeUpdate(_sqlStmts.get(stmtId + ".delete.sql"), model, null);
-    }
-
-    protected int deleteAndCommit(String stmtId, Object model)
-    {
-        Connection conn = newConnection();
-        int count = executeUpdate(_sqlStmts.get(stmtId + ".delete.sql"), model, conn);
-        commit(conn);
-        return count;
-    }
-
-    // Private methods ===========================================================================
-
-    private Connection newConnection()
-    {
-        return _dataManager.getConnection();
-    }
-
-    private Connection getConnection()
-    {
-        Connection conn = _threadConnection.get();
-
-        return conn == null ? newConnection() : conn;
-    }
-
-    private void commit(Connection conn)
-    {
         try
         {
-            if (conn == null)
-                return;
+            int result = session.executeUpdate(stmt(stmtId), param);
+            session.commit().close();
 
-            conn.commit();
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "unable-to-commit-DB-transaction");
+            return result;
         }
         finally
         {
-            cleanup(null, null, conn);
+            session.rollback().close();
         }
     }
 
-    private void rollback(Connection conn)
+    protected void clear(String stmtId)
     {
-        try
-        {
-            if (conn == null)
-                return;
-
-            conn.rollback();
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "unable-to-rollback-DB-transaction");
-        }
-        finally
-        {
-            cleanup(null, null, conn);
-        }
-    }
-
-    private Map<String, PreparedStatement> getStatementMap()
-    {
-        Map<String, PreparedStatement> stmtMap = _statements.get();
-
-        if (stmtMap == null)
-        {
-            stmtMap = new HashMap<String, PreparedStatement>();
-            _statements.set(stmtMap);
-        }
-
-        return stmtMap;
-    }
-
-    private void addBatch(String stmtId, Object model)
-    {
-        try
-        {
-            Map<String, PreparedStatement> stmtMap = getStatementMap();
-            PreparedStatement stmt = stmtMap.get(stmtId);
-            SqlStmt sqlStmt = _sqlStmts.get(stmtId);
-
-            if (stmt == null)
-            {
-                stmt = prepareStatement(sqlStmt, null, getConnection());
-                stmtMap.put(stmtId, stmt);
-            }
-
-            setStatementParams(sqlStmt, stmt, model);
-            stmt.addBatch();
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to add to JDBC batch for statement: " + stmtId);
-        }
-    }
-
-    private int[] executeBatch(String stmtId)
-    {
-        PreparedStatement stmt = getStatementMap().get(stmtId);
-
-        if (stmt == null)
-            return null;
-
-        try
-        {
-            int[] status = stmt.executeBatch();
-
-            for (int i = 0; i < status.length; i++)
-                if (status[i] == PreparedStatement.EXECUTE_FAILED)
-                    throw new BatchUpdateException("JDBC batch execution failed at statement #: " + i, status);
-
-            return status;
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to execute JDBC batch for statement: " + stmtId);
-        }
-    }
-
-    private void clearBatch(String stmtId)
-    {
-        PreparedStatement stmt = getStatementMap().remove(stmtId);
-
-        if (stmt == null)
-            return;
-
-        try
-        {
-            stmt.clearBatch();
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to clear JDBC batch for statement: " + stmtId);
-        }
-        finally
-        {
-            cleanup(null, stmt, null);
-        }
-    }
-
-    private <T> List<T> executeQuery(SqlStmt sqlStmt, Object param, ResultHandler<T> handler)
-    {
-        Connection conn = null;
-        PreparedStatement stmt = null;
-        ResultSet result = null;
-
-        try
-        {
-            conn = getConnection();
-            stmt = prepareStatement(sqlStmt, param, conn);
-
-            return handler.handle(stmt.executeQuery());
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to execute SQL " + sqlStmt);
-        }
-        finally
-        {
-            cleanup(result, stmt, conn);
-        }
-    }
-
-    private int executeUpdate(SqlStmt sqlStmt, Object param, Connection conn)
-    {
-        Connection tConn = conn;
-        PreparedStatement stmt = null;
-        ResultSet result = null;
-
-        try
-        {
-            conn = conn == null ? getConnection() : conn;
-            stmt = prepareStatement(sqlStmt, param, conn);
-
-            return stmt.executeUpdate();
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to execute SQL " + sqlStmt);
-        }
-        finally
-        {
-            cleanup(result, stmt, conn == tConn ? null : conn);
-        }
-    }
-
-    private PreparedStatement prepareStatement(SqlStmt sqlStmt, Object model, Connection conn) throws SQLException
-    {
-        String sql = sqlStmt.getStmt();
-
-        if (sqlStmt.isDynamic())
-            sql = setDynamicSqlSubstitutions(sqlStmt, sql, model);
-
-        PreparedStatement stmt = conn.prepareStatement(sql);
-
-        if (model == null)
-            return stmt;
-
-        setStatementParams(sqlStmt, stmt, model);
-
-        return stmt;
-    }
-
-    private String setDynamicSqlSubstitutions(SqlStmt sqlStmt, String sql, Object model)
-    {
-        List<SqlParam> dynParams = sqlStmt.getDynamicParams();
-
-        for (int i = 0; i < dynParams.size(); i++)
-        {
-            Object value = getComplexPropertyValue(model, dynParams.get(i));
-            sql = sql.replaceFirst("@" + i + "@", String.valueOf(value));
-        }
-
-        return sql;
-    }
-
-    private void setStatementParams(SqlStmt sqlStmt, PreparedStatement stmt, Object model) throws SQLException
-    {
-        List<SqlParam> params = sqlStmt.getParams();
-
-        if (params == null)
-            return;
-
-        for (int i = 0; i < params.size(); i++)
-            setStatementParam(stmt, i + 1, params.get(i), model);
-    }
-
-    private void setStatementParam(PreparedStatement stmt, int i, SqlParam param, Object model) throws SQLException
-    {
-        Object val = getComplexPropertyValue(model, param);
-
-        if (val == null)
-        {
-            stmt.setNull(i, Types.NULL);
-            return;
-        }
-
-        String typeName = val.getClass().getName();
-
-        if (typeName.indexOf("Date") > -1)
-        {
-            val = new java.sql.Timestamp(((Date) val).getTime());
-            typeName = "Timestamp";
-        }
-        else if (typeName.indexOf("Integer") > -1)
-            typeName = "Int";
-        else
-            typeName = typeName.substring(typeName.lastIndexOf('.') + 1);
-
-        ReflectUtils.invokeMethod(stmt, "set" + typeName, new Object[] { new Integer(i), val });
-    }
-
-    @SuppressWarnings("unchecked")
-    private Object getComplexPropertyValue(final Object model, SqlParam param)
-    {
-        if (".".equals(param.getPath()))
-            return model;
-
-        if (model instanceof Map)
-            return ((Map<String, ?>) model).get(param.getPath());
-
-        Object obj = model;
-        String[] props = param.getProperties();
-
-        for (int i = 0; obj != null && i < props.length; i++)
-            obj = ReflectUtils.invokeMethod(obj, props[i], (Object[]) null);
-
-        return obj;
-    }
-
-    private void cleanup(ResultSet result, Statement stmt, Connection conn)
-    {
-        try
-        {
-            if (result != null)
-                result.close();
-        }
-        catch (Exception e)
-        {
-            // Ignore
-        }
-
-        try
-        {
-            if (stmt != null)
-                stmt.close();
-        }
-        catch (Exception e)
-        {
-            // Ignore
-        }
-
-        try
-        {
-            if (conn != null && conn != _threadConnection.get())
-            {
-                try
-                {
-                    conn.rollback();
-                }
-                catch (Exception e)
-                {
-                    // Ignore
-                }
-                conn.close();
-            }
-        }
-        catch (Exception e)
-        {
-            // Ignore
-        }
+        session().clear(stmt(stmtId));
     }
 }

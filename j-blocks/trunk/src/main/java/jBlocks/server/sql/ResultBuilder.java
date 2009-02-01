@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * @author hkrishna
  */
-public class ResultBuilder<T> implements ResultHandler<T>
+class ResultBuilder<T> implements ResultHandler<T>
 {
     // TODO : This class builds the result from the ResultSet object. This builder identity-aware, meaning it will not
     // create duplicate objects for the same entity. This is based on the assumption that the identity column name is

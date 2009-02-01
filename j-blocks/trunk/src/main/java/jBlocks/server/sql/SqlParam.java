@@ -17,7 +17,7 @@ package jBlocks.server.sql;
 /**
  * @author hkrishna
  */
-public class SqlParam extends PropertyPath
+class SqlParam extends PropertyPath
 {
     SqlParam(String path)
     {

@@ -17,7 +17,7 @@ package jBlocks.server.sql;
 /**
  * @author hkrishna
  */
-public class PropertyPath
+class PropertyPath
 {
     protected static String[] parsePath(String path, boolean set)
     {

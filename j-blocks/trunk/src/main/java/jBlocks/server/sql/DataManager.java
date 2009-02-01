@@ -27,31 +27,34 @@ import javax.sql.DataSource;
 
 public class DataManager
 {
-    private AppContext _appCtx;
+    private AppContext _ctx;
     private String     _dbId;
     private String     _jndiName;
     private DataSource _dataSource;
 
-    public DataManager(String dbId, String jndiName)
+    public DataManager(AppContext ctx, String jndiName, String dbId)
     {
-        _dbId = dbId;
+        this(ctx, dbId);
+
         _jndiName = jndiName;
     }
 
-    public DataManager(String dbId, DataSource dataSource)
+    public DataManager(AppContext ctx, DataSource dataSource, String dbId)
     {
-        _dbId = dbId;
+        this(ctx, dbId);
+
         _dataSource = dataSource;
     }
 
-    public void setAppCtx(AppContext ctx)
+    private DataManager(AppContext ctx, String dbId)
     {
-        _appCtx = ctx;
-    }
+        if (ctx == null)
+            throw new IllegalArgumentException("AppContext must be provided.");
 
-    public AppContext appCtx()
-    {
-        return _appCtx;
+        ctx.put(DataManager.class, this);
+
+        _ctx = ctx;
+        _dbId = dbId;
     }
 
     public DataSource getDataSource()
@@ -67,7 +70,7 @@ public class DataManager
         Connection conn = null;
 
         // Try twice before throwing an exception 
-        for (int i = 1;;)
+        for (int i = 0;; i++)
         {
             try
             {
@@ -79,7 +82,7 @@ public class DataManager
             }
             catch (SQLException e)
             {
-                if (i++ > 1)
+                if (i > 0)
                     throw AggregateException.with(e, "unable-to-get-jdbc-connection");
             }
         }
@@ -104,5 +107,28 @@ public class DataManager
     public String dbId()
     {
         return _dbId;
+    }
+
+    public SqlSession threadSession()
+    {
+        SqlSession session = _ctx.getFromThread(SqlSession.class);
+
+        if (session == null)
+            _ctx.putInThread(SqlSession.class, session = newSession());
+
+        return session;
+    }
+
+    public void discardThreadSession()
+    {
+        SqlSession session = _ctx.removeFromThread(SqlSession.class);
+
+        if (session != null)
+            session.close();
+    }
+
+    public SqlSession newSession()
+    {
+        return new SqlSession(getConnection());
     }
 }

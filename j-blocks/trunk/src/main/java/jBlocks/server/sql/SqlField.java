@@ -17,7 +17,7 @@ package jBlocks.server.sql;
 /**
  * @author hkrishna
  */
-public class SqlField extends PropertyPath
+class SqlField extends PropertyPath
 {
     private static String[] parsePath(String path)
     {
