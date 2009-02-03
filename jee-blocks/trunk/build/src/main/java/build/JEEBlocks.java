@@ -16,7 +16,7 @@ public class JEEBlocks extends JavaProject
 
         modules(new GWTLib<JEEBlocks>(this));
 
-        projectDeps(new JBlocks("1.0.0.103"));
+        projectDeps(new JBlocks("1.0.0.109"));
 
         compileDeps("javax.servlet:servlet-api:jar:2.5");
     }
