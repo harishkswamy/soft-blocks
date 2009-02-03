@@ -33,7 +33,30 @@ public class AggregateException extends RuntimeException
     }
 
     /**
-     * Convenience method for {@link #with(Throwable, String, Object...)}.
+     * Wraps the provided exceptions from the first to last and finally with the provided message.
+     */
+    public static AggregateException with(String message, Throwable... ts)
+    {
+        AggregateException ae = null;
+        
+        for (Throwable t : ts)
+        {
+            if (t == null)
+                continue;
+
+            if (ae == null)
+                ae = with(t);
+            else if (t instanceof AggregateException)
+                ae = with(ae, t.getLocalizedMessage());
+            else
+                ae = with(ae, t.toString());
+        }
+
+        return with(ae, message);
+    }
+
+    /**
+     * Wraps the provided exception with the provided message. 
      */
     public static AggregateException with(Throwable t, String message)
     {

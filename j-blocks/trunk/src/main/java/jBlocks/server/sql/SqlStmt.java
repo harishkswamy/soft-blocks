@@ -108,7 +108,7 @@ class SqlStmt
     @Override
     public String toString()
     {
-        StringBuilder b = new StringBuilder("Statement: ").append(_stmt).append(", Fields: ").append(_fields);
+        StringBuilder b = new StringBuilder("SQL: ").append(_stmt).append(", Fields: ").append(_fields);
         b.append(", Parameters: ").append(_params).append(", Dynamic Parameters: ").append(_dynParams);
         return b.append(", SQL Map: ").append(_sqlMap).toString();
     }

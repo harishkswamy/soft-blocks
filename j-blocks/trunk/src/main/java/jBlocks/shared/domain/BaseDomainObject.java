@@ -52,6 +52,6 @@ public class BaseDomainObject implements Serializable
     @Override
     public String toString()
     {
-        return "Id: " + _id;
+        return "Id: " + _id + ", Record Version: " + _recVersion;
     }
 }

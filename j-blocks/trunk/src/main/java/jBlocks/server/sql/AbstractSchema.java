@@ -14,7 +14,6 @@
 
 package jBlocks.server.sql;
 
-import jBlocks.server.AggregateException;
 import jBlocks.server.IOUtils;
 
 import java.net.URL;
@@ -70,36 +69,6 @@ public abstract class AbstractSchema
         return _dataManager.threadSession();
     }
 
-    public void startTransaction()
-    {
-        for (int i = 0;; i++)
-        {
-            try
-            {
-                session().rollback();
-
-                break;
-            }
-            catch (Exception e)
-            {
-                _dataManager.discardThreadSession();
-
-                if (i > 0)
-                    throw AggregateException.with(e);
-            }
-        }
-    }
-
-    public void commit()
-    {
-        session().commit();
-    }
-
-    public void rollback()
-    {
-        session().rollback();
-    }
-
     protected void setFetchSize(String stmtKey, int size)
     {
         _stmts.get(stmtKey).setProperty("setFetchSize", size);
@@ -125,9 +94,9 @@ public abstract class AbstractSchema
         return session().select(stmt(stmtId), paramModel, callback);
     }
 
-    protected void addBatch(String stmtId, Object param)
+    protected SqlSession addBatch(String stmtId, Object param)
     {
-        session().addBatch(stmt(stmtId), param);
+        return session().addBatch(stmt(stmtId), param);
     }
 
     protected int[] executeBatch(String stmtId)
@@ -140,25 +109,63 @@ public abstract class AbstractSchema
         return session().executeUpdate(stmt(stmtId), param);
     }
 
-    protected int executeAndCommit(String stmtId, Object param)
+    /**
+     * This method will run the provided task as a unit of work within a DB transaction. This method will try to recover
+     * from broken DB connections and throws an {@link Error} when the recovery fails.
+     * 
+     * @throws Error
+     *             when the DB connection is broken and recovery attempts fail.
+     */
+    public void transact(Runnable task)
     {
-        SqlSession session = _dataManager.newSession();
+        transact(task, 1, false);
+    }
+
+    /**
+     * This method is exactly the same as {@link #transact(Runnable)} except this method will run the transaction in a
+     * new session.
+     * 
+     * @throws Error
+     *             when the DB connection is broken and recovery attempts fail.
+     */
+    public void transactInNewSession(Runnable task)
+    {
+        transact(task, 1, true);
+    }
+
+    private void transact(Runnable task, int attempt, boolean inNewSession)
+    {
+        SqlSession session = inNewSession ? _dataManager.newSession() : session();
 
         try
         {
-            int result = session.executeUpdate(stmt(stmtId), param);
-            session.commit().close();
-
-            return result;
+            session.startTransaction();
+            task.run();
+            session.commit();
         }
         finally
         {
-            session.rollback().close();
-        }
-    }
+            try
+            {
+                session.endTransaction();
+            }
+            catch (Exception e)
+            {
+                if (attempt > 1)
+                    throw new Error("DB connection error. The database or the network is possibly down.");
 
-    protected void clear(String stmtId)
-    {
-        session().clear(stmt(stmtId));
+                if (inNewSession)
+                    session.close();
+                else
+                    _dataManager.discardThreadSession();
+
+                transact(task, 2, inNewSession);
+            }
+            finally
+            {
+                if (inNewSession)
+                    session.close();
+            }
+        }
     }
 }

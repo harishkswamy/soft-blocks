@@ -21,8 +21,125 @@ import java.util.Map;
  */
 public class SqlSession
 {
+    private class SqlTrn
+    {
+        private boolean                         _committed;
+        private Map<SqlStmt, PreparedStatement> _batchStmts;
+
+        SqlSession addBatch(SqlStmt sqlStmt, Object param)
+        {
+            try
+            {
+                PreparedStatement stmt = getStatement(sqlStmt, param);
+
+                if (_batchStmts == null)
+                    _batchStmts = new HashMap<SqlStmt, PreparedStatement>();
+
+                if (!_batchStmts.containsKey(sqlStmt))
+                    _batchStmts.put(sqlStmt, stmt);
+
+                setStatementParams(sqlStmt, stmt, param);
+                stmt.addBatch();
+
+                return SqlSession.this;
+            }
+            catch (Exception e)
+            {
+                throw AggregateException.with(e, "Unable to add batch " + sqlStmt + ", Parameter: "
+                    + param);
+            }
+        }
+
+        int[] executeBatch(SqlStmt sqlStmt)
+        {
+            PreparedStatement stmt = _stmts.get(sqlStmt);
+
+            if (stmt == null)
+                return null;
+
+            try
+            {
+                int[] status = stmt.executeBatch();
+
+                for (int i = 0; i < status.length; i++)
+                    if (status[i] == PreparedStatement.EXECUTE_FAILED)
+                        throw new BatchUpdateException("Batch execution failed at statement #: " + i, status);
+
+                return status;
+            }
+            catch (Exception e)
+            {
+                throw AggregateException.with(e, "Unable to execute batch " + sqlStmt);
+            }
+            finally
+            {
+                clear(sqlStmt);
+            }
+        }
+
+        int executeUpdate(SqlStmt sqlStmt, Object param)
+        {
+            try
+            {
+                PreparedStatement stmt = getStatement(sqlStmt, param);
+                setStatementParams(sqlStmt, stmt, param);
+
+                return stmt.executeUpdate();
+            }
+            catch (Exception e)
+            {
+                throw AggregateException.with(e, "Unable to execute update " + sqlStmt + ", Parameter: " + param);
+            }
+            finally
+            {
+                clear(sqlStmt);
+            }
+        }
+
+        SqlSession commit()
+        {
+            try
+            {
+                _conn.commit();
+                _committed = true;
+
+                return SqlSession.this;
+            }
+            catch (SQLException e)
+            {
+                throw AggregateException.with(e, "Unable to commit DB transaction.");
+            }
+        }
+
+        SqlSession end()
+        {
+            try
+            {
+                if (!_committed)
+                    _conn.rollback();
+
+                return SqlSession.this;
+            }
+            catch (SQLException e)
+            {
+                throw AggregateException.with(e, "Unable to rollback DB transaction.");
+            }
+            finally
+            {
+                if (_batchStmts != null)
+                {
+                    for (SqlStmt sqlStmt : _batchStmts.keySet())
+                        clear(sqlStmt);
+
+                    _batchStmts = null;
+                }
+            }
+        }
+    }
+
     private Connection                      _conn;
     private Map<SqlStmt, PreparedStatement> _stmts = new HashMap<SqlStmt, PreparedStatement>();
+    private SqlTrn                          _trn;
 
     SqlSession(Connection conn)
     {
@@ -32,7 +149,17 @@ public class SqlSession
         _conn = conn;
     }
 
-    public PreparedStatement getStatement(SqlStmt sqlStmt, Object model)
+    public SqlSession startTransaction()
+    {
+        if (_trn != null)
+            throw new IllegalStateException("This session is already in a transaction.");
+
+        _trn = new SqlTrn();
+
+        return this;
+    }
+
+    public PreparedStatement getStatement(SqlStmt sqlStmt, Object param)
     {
         try
         {
@@ -40,7 +167,7 @@ public class SqlSession
 
             if (stmt == null)
             {
-                stmt = prepareStatement(sqlStmt, model);
+                stmt = prepareStatement(sqlStmt, param);
                 _stmts.put(sqlStmt, stmt);
             }
 
@@ -48,7 +175,7 @@ public class SqlSession
         }
         catch (Exception e)
         {
-            throw AggregateException.with(e, "Unable to get prepared statement for " + sqlStmt);
+            throw AggregateException.with(e, "Unable to prepare statement " + sqlStmt + ", Parameter: " + param);
         }
     }
 
@@ -104,7 +231,7 @@ public class SqlSession
         }
         catch (Exception e)
         {
-            throw AggregateException.with(e, "Unable to execute SQL " + sqlStmt);
+            throw AggregateException.with(e, "Unable to execute query " + sqlStmt + ", Parameter: " + param);
         }
         finally
         {
@@ -115,112 +242,33 @@ public class SqlSession
 
     public SqlSession addBatch(SqlStmt sqlStmt, Object param)
     {
-        try
-        {
-            PreparedStatement stmt = getStatement(sqlStmt, param);
-            setStatementParams(sqlStmt, stmt, param);
-            stmt.addBatch();
-
-            return this;
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to add to JDBC batch for statement: " + sqlStmt);
-        }
+        return trn().addBatch(sqlStmt, param);
     }
 
     public int[] executeBatch(SqlStmt sqlStmt)
     {
-        PreparedStatement stmt = _stmts.get(sqlStmt);
-
-        if (stmt == null)
-            return null;
-
-        try
-        {
-            int[] status = stmt.executeBatch();
-
-            for (int i = 0; i < status.length; i++)
-                if (status[i] == PreparedStatement.EXECUTE_FAILED)
-                    throw new BatchUpdateException("JDBC batch execution failed at statement #: " + i, status);
-
-            return status;
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to execute JDBC batch for statement: " + sqlStmt);
-        }
-        finally
-        {
-            clear(sqlStmt);
-        }
+        return trn().executeBatch(sqlStmt);
     }
 
     public int executeUpdate(SqlStmt sqlStmt, Object param)
     {
-        try
-        {
-            PreparedStatement stmt = getStatement(sqlStmt, param);
-            setStatementParams(sqlStmt, stmt, param);
-
-            return stmt.executeUpdate();
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e, "Unable to execute SQL " + sqlStmt);
-        }
-        finally
-        {
-            clear(sqlStmt);
-        }
-    }
-
-    public SqlSession clear(SqlStmt sqlStmt)
-    {
-        PreparedStatement stmt = _stmts.get(sqlStmt);
-
-        if (stmt == null)
-            return this;
-
-        try
-        {
-            stmt.clearBatch();
-            stmt.clearParameters();
-            stmt.clearWarnings();
-        }
-        catch (Exception e)
-        {
-            close(_stmts.remove(sqlStmt));
-        }
-
-        return this;
+        return trn().executeUpdate(sqlStmt, param);
     }
 
     public SqlSession commit()
     {
-        try
-        {
-            _conn.commit();
-
-            return this;
-        }
-        catch (SQLException e)
-        {
-            throw AggregateException.with(e, "unable-to-commit-DB-transaction");
-        }
+        return trn().commit();
     }
 
-    public SqlSession rollback()
+    public SqlSession endTransaction()
     {
         try
         {
-            _conn.rollback();
-
-            return this;
+            return trn().end();
         }
-        catch (SQLException e)
+        finally
         {
-            throw AggregateException.with(e, "unable-to-rollback-DB-transaction");
+            _trn = null;
         }
     }
 
@@ -229,8 +277,8 @@ public class SqlSession
         closeStatements();
         closeConnection();
 
-        _conn = null;
         _stmts = null;
+        _conn = null;
     }
 
     @Override
@@ -240,6 +288,14 @@ public class SqlSession
     }
 
     // Private methods ===========================================================================
+
+    private SqlTrn trn()
+    {
+        if (_trn == null)
+            throw new IllegalStateException("No transaction in progress; this operation requires a transaction.");
+
+        return _trn;
+    }
 
     private PreparedStatement prepareStatement(SqlStmt sqlStmt, Object model) throws SQLException
     {
@@ -319,6 +375,25 @@ public class SqlSession
             obj = ReflectUtils.invokeMethod(obj, props[i], (Object[]) null);
 
         return obj;
+    }
+
+    private void clear(SqlStmt sqlStmt)
+    {
+        PreparedStatement stmt = _stmts.get(sqlStmt);
+
+        if (stmt == null)
+            return;
+
+        try
+        {
+            stmt.clearBatch();
+            stmt.clearParameters();
+            stmt.clearWarnings();
+        }
+        catch (Exception e)
+        {
+            close(_stmts.remove(sqlStmt));
+        }
     }
 
     private void close(ResultSet result)
