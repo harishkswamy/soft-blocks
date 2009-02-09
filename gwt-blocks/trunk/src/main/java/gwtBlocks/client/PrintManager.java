@@ -81,7 +81,7 @@ public class PrintManager
 
     public static void printPreview(String[] styles, UIObject obj)
     {
-        printPreview(styles, obj.getElement().toString());
+        printPreview(styles, obj.getElement().getInnerHTML());
     }
 
     public static void print(String[] styles, String htmlBody)

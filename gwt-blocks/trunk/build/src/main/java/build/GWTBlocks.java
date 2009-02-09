@@ -14,7 +14,7 @@ public class GWTBlocks extends GWTProject
     {
         super("1.5", "1.5.3");
 
-        projectDeps(new JEEBlocks("1.0.0.110"));
+        projectDeps(new JEEBlocks("1.0.0.113"));
     }
 
     public GWTBlocks(String version)
