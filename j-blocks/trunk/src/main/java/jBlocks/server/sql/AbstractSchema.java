@@ -14,12 +14,14 @@
 
 package jBlocks.server.sql;
 
+import jBlocks.server.AggregateException;
 import jBlocks.server.IOUtils;
 
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.Callable;
 
 /**
  * Base class to manage database access to a particular schema.
@@ -116,9 +118,9 @@ public abstract class AbstractSchema
      * @throws Error
      *             when the DB connection is broken and recovery attempts fail.
      */
-    public void transact(Runnable task)
+    public <V> V transact(Callable<V> task)
     {
-        transact(task, 1, false);
+        return transact(task, 1, false);
     }
 
     /**
@@ -128,20 +130,26 @@ public abstract class AbstractSchema
      * @throws Error
      *             when the DB connection is broken and recovery attempts fail.
      */
-    public void transactInNewSession(Runnable task)
+    public <V> V transactInNewSession(Callable<V> task)
     {
-        transact(task, 1, true);
+        return transact(task, 1, true);
     }
 
-    private void transact(Runnable task, int attempt, boolean inNewSession)
+    private <V> V transact(Callable<V> task, int attempt, boolean inNewSession)
     {
         SqlSession session = inNewSession ? _dataManager.newSession() : session();
 
         try
         {
             session.startTransaction();
-            task.run();
+            V result = task.call();
             session.commit();
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            throw AggregateException.with(e, "DB transaction failed.");
         }
         finally
         {
