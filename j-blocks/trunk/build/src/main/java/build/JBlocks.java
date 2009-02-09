@@ -16,13 +16,13 @@ public class JBlocks extends JavaProject
 
         modules(new GWTLib<JBlocks>(this));
 
-        deps("org.slf4j:slf4j-api:jar:1.5.0");
+        deps("org.slf4j:slf4j-api:jar:1.5.6");
 
         testDeps("cglib:cglib-nodep:jar:2.1_3", "org.objenesis:objenesis:jar:1.0", "org.jmock:jmock:jar:2.4.0",
             "org.jmock:jmock-legacy:jar:2.4.0", "org.hamcrest:hamcrest-core:jar:1.1",
             "org.hamcrest:hamcrest-library:jar:1.1");
 
-        runtimeDeps("ch.qos.logback:logback-core:jar:0.9.9", "ch.qos.logback:logback-classic:jar:0.9.9");
+        runtimeDeps("ch.qos.logback:logback-core:jar:0.9.14", "ch.qos.logback:logback-classic:jar:0.9.14");
     }
 
     public JBlocks(String version)
