@@ -18,11 +18,14 @@ import buildBlocks.Utils;
  */
 public class JUnitTester extends JavaTester
 {
-    public JUnitTester(JavaModule<?> javaModule)
+    public JUnitTester(String version, JavaModule<?> javaModule)
     {
         super(javaModule);
 
-        javaModule.project().testDeps("junit:junit:jar:4.5");
+        if (Double.parseDouble(version) < 4)
+            throw new Error("JUnit version " + version + " is currently not supported.");
+
+        javaModule.project().testDeps("junit:junit:jar:" + version);
     }
 
     public boolean run()
@@ -35,7 +38,7 @@ public class JUnitTester extends JavaTester
     {
         JavaLayout l = javaModule().project().layout();
 
-        String testBinPath = l.testBinPath();
+        String testBinPath = l.targetTestBinPath();
         List<File> classFiles = new FileTask(testBinPath).select(".*\\.class").getFiles(false);
 
         URLClassLoader cl = Utils.newClassLoader(javaModule().testClasspath());
@@ -63,6 +66,9 @@ public class JUnitTester extends JavaTester
                     printClPath = printTestTrace(e, cl, printClPath);
             }
         }
+
+        if (ctx().traceOn())
+            System.out.println("Test classes: " + classNames);
 
         return classNames.toArray(new String[classNames.size()]);
     }

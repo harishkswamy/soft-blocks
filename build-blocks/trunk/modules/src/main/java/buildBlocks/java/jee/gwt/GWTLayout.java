@@ -1,5 +1,6 @@
 package buildBlocks.java.jee.gwt;
 
+import buildBlocks.Layout;
 import buildBlocks.java.jee.JEELayout;
 
 /**
@@ -7,33 +8,48 @@ import buildBlocks.java.jee.JEELayout;
  */
 public class GWTLayout extends JEELayout
 {
-    private String _gwt = "gwt";
-    private String _out = "out";
-    private String _gen = "gen";
+    private String _gwt = "gwt/";
+    private String _out = "out/";
+    private String _gen = "gen/";
+
+    /**
+     * @param path
+     *            relative to {@link Layout#targetPath()}.
+     */
+    public GWTLayout gwt(String path)
+    {
+        _gwt = path;
+        return this;
+    }
+
+    /**
+     * @param path
+     *            relative to {@link #targetGWTPath()}.
+     */
+    public GWTLayout out(String path)
+    {
+        _out = path;
+        return this;
+    }
+
+    /**
+     * @param path
+     *            relative to {@link #targetGWTPath()}.
+     */
+    public GWTLayout gen(String path)
+    {
+        _gen = path;
+        return this;
+    }
 
     private String _gwtPath;
     private String _gwtOutPath;
     private String _gwtGenPath;
 
-    public void gwt(String gwt)
-    {
-        _gwt = gwt;
-    }
-
-    public void out(String out)
-    {
-        _out = out;
-    }
-
-    public void gen(String gen)
-    {
-        _gen = gen;
-    }
-
     /**
      * @return target/gwt/ by default.
      */
-    public String targetGwtPath()
+    public String targetGWTPath()
     {
         if (_gwtPath == null)
             _gwtPath = new StringBuilder(targetPath()).append(_gwt).append('/').toString();
@@ -42,23 +58,23 @@ public class GWTLayout extends JEELayout
     }
 
     /**
-     * @return target/gwt/out by default.
+     * @return target/gwt/out/ by default.
      */
-    public String targetGwtOutPath()
+    public String targetGWTOutPath()
     {
         if (_gwtOutPath == null)
-            _gwtOutPath = new StringBuilder(targetGwtPath()).append(_out).toString();
+            _gwtOutPath = new StringBuilder(targetGWTPath()).append(_out).toString();
 
         return _gwtOutPath;
     }
 
     /**
-     * @return target/gwt/gen by default.
+     * @return target/gwt/gen/ by default.
      */
-    public String targetGwtGenPath()
+    public String targetGWTGenPath()
     {
         if (_gwtGenPath == null)
-            _gwtGenPath = new StringBuilder(targetGwtPath()).append(_gen).toString();
+            _gwtGenPath = new StringBuilder(targetGWTPath()).append(_gen).toString();
 
         return _gwtGenPath;
     }

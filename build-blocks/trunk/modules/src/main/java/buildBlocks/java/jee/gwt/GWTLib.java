@@ -1,11 +1,11 @@
 package buildBlocks.java.jee.gwt;
 
 import buildBlocks.Artifact;
+import buildBlocks.JarTask;
 import buildBlocks.Module;
 import buildBlocks.ModuleInfo;
 import buildBlocks.Project;
 import buildBlocks.TaskInfo;
-import buildBlocks.ZipTask;
 import buildBlocks.java.JavaLayout;
 
 /**
@@ -66,12 +66,12 @@ public class GWTLib<P extends Project<? extends JavaLayout>> extends Module<P>
 
         String clientExcludes = ".*/server";
 
-        ZipTask zipTask = new ZipTask(clientJarPath()).to("").from(l.mainBinPath()).exclude(clientExcludes).add();
-        zipTask.from(l.mainJavaPath()).exclude(clientExcludes).add().createJar();
+        JarTask jarTask = new JarTask(clientJarPath(), p.buildId()).to("").from(l.targetMainBinPath()).exclude(
+            clientExcludes).add().from(l.mainJavaPath()).exclude(clientExcludes).add().create();
 
         String serverExcludes = ".*/client|.*/generators|.*/public|.*.gwt.xml";
 
-        zipTask.reset(serverJarPath()).to("").from(l.mainBinPath()).exclude(serverExcludes).add().createJar();
+        jarTask.reset(serverJarPath()).to("").from(l.targetMainBinPath()).exclude(serverExcludes).add().create();
     }
 
     @TaskInfo(desc = "Builds and publishes the project's client and server jars to the local repository.", deps = { "jar" })

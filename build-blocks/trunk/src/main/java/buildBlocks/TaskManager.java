@@ -46,6 +46,7 @@ class TaskManager
                 {
                     System.out.println(String.format("Executing %s...", _id));
 
+                    _method.setAccessible(true);
                     _method.invoke(_container, (Object[]) null);
                     _done = true;
 
@@ -148,7 +149,7 @@ class TaskManager
         for (TaskContainer container : containers)
             _taskSets.add(new TaskSet(container));
     }
-    
+
     void unregister(TaskContainer... containers)
     {
         for (TaskContainer container : containers)

@@ -11,16 +11,34 @@ public abstract class Module<P extends Project<?>> implements TaskContainer
 
     public Module(P project)
     {
-        ModuleInfo info = getClass().getAnnotation(ModuleInfo.class);
-
-        if (info == null)
-            throw new Error("Modules must be annotated with " + ModuleInfo.class);
-
-        String group = info.group().trim().length() == 0 ? getClass().getPackage().getName() : info.group();
-        String id = info.id().trim().length() == 0 ? getClass().getSimpleName() : info.id();
-
-        _name = info.name().trim().length() == 0 ? id : info.name();
         _project = project;
+        moduleInfo(getClass().getAnnotation(ModuleInfo.class));
+    }
+
+    @SuppressWarnings("unchecked")
+    void replaces(Class<? extends Module> moduleClass)
+    {
+        moduleInfo(moduleClass.getAnnotation(ModuleInfo.class));
+    }
+
+    private void moduleInfo(ModuleInfo info)
+    {
+        String group = getClass().getPackage().getName();
+        String id = getClass().getName().substring(getClass().getName().lastIndexOf('.'));
+        _name = id;
+
+        if (info != null)
+        {
+            if (info.group().trim().length() > 0)
+                group = info.group();
+
+            if (info.id().trim().length() > 0)
+                id = info.id();
+
+            if (info.name().trim().length() > 0)
+                _name = info.name();
+        }
+
         _qid = group + '.' + id;
     }
 

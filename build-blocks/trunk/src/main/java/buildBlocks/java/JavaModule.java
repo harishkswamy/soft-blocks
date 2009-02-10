@@ -4,11 +4,11 @@ import java.io.File;
 
 import buildBlocks.Artifact;
 import buildBlocks.FileTask;
+import buildBlocks.JarTask;
 import buildBlocks.Module;
 import buildBlocks.ModuleInfo;
 import buildBlocks.Project;
 import buildBlocks.TaskInfo;
-import buildBlocks.ZipTask;
 
 /**
  * @author hkrishna
@@ -16,14 +16,15 @@ import buildBlocks.ZipTask;
 @ModuleInfo(group = "buildBlocks", id = "j")
 public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<P>
 {
-    private JavaCompiler _compiler = new EclipseCompiler();
-    private JavaTester   _tester   = new JUnitTester(this);
+    private JavaCompiler     _compiler     = new EclipseCompiler();
+    private JavaTester       _tester       = new JUnitTester("4.5", this);
+    private JavadocGenerator _docGenerator = new JavadocGenerator(this);
 
-    private String       _mainClasspath;
-    private String       _testClasspath;
-    private String       _runtimeClasspath;
+    private String           _mainClasspath;
+    private String           _testClasspath;
+    private String           _runtimeClasspath;
 
-    private String       _jarPath;
+    private String           _jarPath;
 
     public JavaModule(String javaVersion, P project)
     {
@@ -54,6 +55,18 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
     public JavaTester tester()
     {
         return _tester;
+    }
+
+    public JavaModule<P> docGenerator(JavadocGenerator docGenerator)
+    {
+        _docGenerator = docGenerator;
+
+        return this;
+    }
+
+    public JavadocGenerator docGenerator()
+    {
+        return _docGenerator;
     }
 
     /**
@@ -92,7 +105,7 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
             b.append(artifact.getPath()).append(File.pathSeparatorChar);
 
         JavaLayout l = project().layout();
-        b.append(l.mainBinPath()).append(File.pathSeparatorChar).append(l.testBinPath());
+        b.append(l.targetMainBinPath()).append(File.pathSeparatorChar).append(l.targetTestBinPath());
 
         return _testClasspath = b.toString();
     }
@@ -127,10 +140,11 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
 
     // Tasks ================================================================================
 
-    @TaskInfo(desc = "Cleans the project's main target space.")
+    @TaskInfo(desc = "Cleans the project's main and test target spaces.")
     public void clean()
     {
-        new FileTask(project().layout().mainBinPath()).delete();
+        JavaLayout l = project().layout();
+        new FileTask(l.targetMainBinPath()).delete().reset(l.targetTestBinPath()).delete();
     }
 
     @TaskInfo(desc = "Compiles the project in the target space.")
@@ -139,9 +153,10 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
         P p = project();
         JavaLayout l = p.layout();
 
-        compiler().compile(l.mainJavaPath(), mainClasspath(), l.mainBinPath());
+        compiler().compile(l.mainJavaPath(), mainClasspath(), l.targetMainBinPath());
 
-        new FileTask(l.mainResourcePath()).exclude(null).copyToDir(l.mainBinPath(), true);
+        new FileTask(l.mainJavaPath()).exclude(".*\\.java").copyToDir(l.targetMainBinPath(), false).reset(
+            l.mainResourcePath()).copyToDir(l.targetMainBinPath(), false);
     }
 
     @TaskInfo(desc = "Builds and runs the test suite for the project.", deps = { "compile" })
@@ -152,11 +167,10 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
 
         System.out.println("Compiling test source...");
 
-        compiler().compile(l.testJavaPath(), testClasspath(), l.testBinPath());
+        compiler().compile(l.testJavaPath(), testClasspath(), l.targetTestBinPath());
 
-        FileTask fileTask = new FileTask(l.testJavaPath()).select(".*[^\\.java]").exclude(null).copyToDir(
-            l.testBinPath(), true);
-        fileTask.reset(l.testResourcePath()).exclude(null).copyToDir(l.testBinPath(), true);
+        new FileTask(l.testJavaPath()).exclude(".*\\.java").copyToDir(l.targetTestBinPath(), false).reset(
+            l.testResourcePath()).copyToDir(l.targetTestBinPath(), false);
 
         System.out.println("Running tests...");
 
@@ -169,7 +183,7 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
         P p = project();
         JavaLayout l = p.layout();
 
-        new ZipTask(jarPath()).from(l.mainBinPath()).exclude(null).add().createJar();
+        new JarTask(jarPath(), p.buildId()).from(l.targetMainBinPath()).exclude(null).add().create();
     }
 
     @TaskInfo(desc = "Builds and publishes the project's jar to the local repository.", deps = { "jar" })
@@ -177,5 +191,11 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
     {
         P p = project();
         Artifact.install(Artifact.toSpec(p, "jar", p.classifier()), jarPath());
+    }
+
+    @TaskInfo(desc = "Generates Javadoc for the project's main source.")
+    public void doc()
+    {
+        docGenerator().generate();
     }
 }

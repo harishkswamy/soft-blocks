@@ -2,11 +2,11 @@ package buildBlocks.java.jee;
 
 import buildBlocks.Artifact;
 import buildBlocks.FileTask;
+import buildBlocks.JarTask;
 import buildBlocks.Module;
 import buildBlocks.ModuleInfo;
 import buildBlocks.Project;
 import buildBlocks.TaskInfo;
-import buildBlocks.ZipTask;
 import buildBlocks.java.JavaModule;
 
 /**
@@ -56,6 +56,6 @@ public class JEEModule<P extends Project<? extends JEELayout>> extends Module<P>
         JavaModule<?> jModule = p.module(JavaModule.class);
         String warPathName = jModule.jarPath().replaceFirst("\\.jar", ".war");
 
-        new ZipTask(warPathName).from(l.targetWebappPath()).exclude(null).add().createJar();
+        new JarTask(warPathName, p.buildId()).from(l.targetWebappPath()).exclude(null).add().create();
     }
 }

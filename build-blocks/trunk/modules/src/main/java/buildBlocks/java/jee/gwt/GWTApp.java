@@ -67,7 +67,7 @@ public class GWTApp<P extends Project<? extends GWTLayout>> extends Module<P>
         P p = project();
         GWTLayout l = p.layout();
 
-        return new String[] { "-out", l.targetGwtOutPath(), "-gen", l.targetGwtGenPath(), _moduleName };
+        return new String[] { "-out", l.targetGWTOutPath(), "-gen", l.targetGWTGenPath(), _moduleName };
     }
 
     public String gwtClasspath()
@@ -76,14 +76,14 @@ public class GWTApp<P extends Project<? extends GWTLayout>> extends Module<P>
         GWTLayout l = p.layout();
         JavaModule<?> jModule = p.module(JavaModule.class);
 
-        return new StringBuilder(l.mainJavaPath()).append(File.pathSeparator).append(l.mainBinPath()).append(
+        return new StringBuilder(l.mainJavaPath()).append(File.pathSeparator).append(l.targetMainBinPath()).append(
             File.pathSeparator).append(jModule.mainClasspath()).toString();
     }
 
     @TaskInfo(desc = "Cleans the project's main, webapp and gwt target spaces.", deps = { "buildBlocks.jee:clean" })
     public void clean()
     {
-        new FileTask(project().layout().targetGwtPath()).delete();
+        new FileTask(project().layout().targetGWTPath()).delete();
     }
 
     @TaskInfo(desc = "Generates Javascript from the project's client files.", deps = { "buildBlocks.j:compile" })
@@ -111,8 +111,16 @@ public class GWTApp<P extends Project<? extends GWTLayout>> extends Module<P>
 
         fileTask.reset(gwtLib.serverJarPath()).copyToDir(l.targetWebinfLib(), false);
 
-        String gwtOut = l.targetGwtOutPath() + "/" + moduleName();
+        String gwtOut = l.targetGWTOutPath() + "/" + moduleName();
 
         fileTask.reset(gwtOut).copyToDir(l.targetWebappPath(), false);
+    }
+
+    @TaskInfo(desc = "Builds a JEE war file of the GWT application.", deps = { "deploy" })
+    public void war()
+    {
+        P p = project();
+        JEEModule<?> jeeModule = p.module(JEEModule.class);
+        jeeModule.war();
     }
 }

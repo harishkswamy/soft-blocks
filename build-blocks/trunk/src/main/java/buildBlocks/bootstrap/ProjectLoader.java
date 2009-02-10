@@ -44,14 +44,15 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
 
         try
         {
-            URLClassLoader classLoader = new URLClassLoader(new URL[] { new File(b.layout().mainBinPath()).toURL() });
+            URLClassLoader classLoader = new URLClassLoader(new URL[] { new File(b.layout().targetMainBinPath())
+                .toURL() });
 
             Project<?> project = discoverProject(".", classLoader).newInstance();
 
             String buildNum = Context.ctx().property("build#");
 
             if (buildNum != null)
-                project.buildNumber(buildNum);
+                project.buildNum(buildNum);
 
             // b.classifier(project.id() + '-' + project.version());
             b.classifier(project.id());
@@ -76,14 +77,14 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
     {
         TaskExecutor b = project();
 
-        String[] fileNames = new File(b.layout().mainBinPath(), packageDir).list();
+        String[] fileNames = new File(b.layout().targetMainBinPath(), packageDir).list();
 
         if (fileNames == null)
             throw new Error("Unable to find project class.");
 
         for (String fileName : fileNames)
         {
-            File file = new File(b.layout().mainBinPath(), packageDir + '/' + fileName);
+            File file = new File(b.layout().targetMainBinPath(), packageDir + '/' + fileName);
 
             if (file.isDirectory())
             {
@@ -94,6 +95,9 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
             }
             else if (fileName.endsWith(".class"))
             {
+                if (fileName.contains("$"))
+                    continue;
+
                 String className = Utils.trim(packageDir.replace('/', '.'), ".") + '.'
                     + fileName.substring(0, fileName.length() - 6);
 

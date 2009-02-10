@@ -1,6 +1,8 @@
 package buildBlocks;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +18,8 @@ public abstract class Project<L extends Layout> implements TaskContainer
     private String                                  _name;
     private String                                  _version;
     private String                                  _classifier;
+    private String                                  _buildNum;
+    private String                                  _buildTime;
 
     private L                                       _layout;
 
@@ -39,7 +43,8 @@ public abstract class Project<L extends Layout> implements TaskContainer
         _id = info.id().trim().length() == 0 ? getClass().getSimpleName() : info.id();
         _qid = _group + '.' + _id;
         _name = info.name().trim().length() == 0 ? _id : info.name();
-        _version = info.version() + ".SNAPSHOT";
+        _version = info.version();
+        _buildTime = new SimpleDateFormat("yyyyMMdd-HHmmssZ").format(new Date());
 
         _layout = layout;
 
@@ -78,9 +83,19 @@ public abstract class Project<L extends Layout> implements TaskContainer
         return _version;
     }
 
-    public void buildNumber(String num)
+    public void buildNum(String num)
     {
-        version(version().replaceFirst("SNAPSHOT", num));
+        _buildNum = num;
+    }
+
+    public String buildNum()
+    {
+        return _buildNum;
+    }
+
+    public String buildId()
+    {
+        return _buildTime + (_buildNum == null ? "" : '-' + _buildNum);
     }
 
     public void classifier(String name)
@@ -116,6 +131,8 @@ public abstract class Project<L extends Layout> implements TaskContainer
             String fmt = "WARNING: Overwriting module %s with module %s.";
             System.out.println(String.format(fmt, oldMod, module));
         }
+
+        module.replaces(moduleClass);
 
         _modules.put(moduleClass, module);
         _taskManager.register(module);
