@@ -35,6 +35,10 @@ public class Context
         return props().getProperty(key);
     }
 
+    /**
+     * @return the value for property <code>key</code>, if the property <code>key</code> is not registered, then
+     *         this method will simply return the provided <code>defValue</code>.
+     */
     public String property(String key, String defValue)
     {
         return props().getProperty(key, defValue);

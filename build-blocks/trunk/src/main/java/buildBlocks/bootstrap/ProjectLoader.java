@@ -18,24 +18,23 @@ import buildBlocks.java.JavaModule;
  * @author hkrishna
  */
 @ModuleInfo(id = "_bbbm_")
-public class ProjectLoader extends JavaModule<TaskExecutor>
+public class ProjectLoader extends JavaModule<ProjectBuilder>
 {
-    private String _bbHome;
-    private String _bbClasspath;
+    private BuilderArgs _builderArgs;
 
-    public ProjectLoader(TaskExecutor taskExecutor, String bbHome, String bbClasspath)
+    public ProjectLoader(ProjectBuilder projectBuilder, BuilderArgs builderArgs)
     {
-        super("1.5", taskExecutor);
+        super("1.5", projectBuilder);
 
-        _bbHome = bbHome;
-        _bbClasspath = bbClasspath;
+        _builderArgs = builderArgs;
     }
 
     Project<?> loadProject(boolean exportBuilder)
     {
-        TaskExecutor b = project();
+        ProjectBuilder b = project();
 
-        b.layout().projectPath(ctx().property("build.dir", "build"));
+        String projectPath = b.layout().projectPath();
+        b.layout().projectPath(projectPath + ctx().property("build.dir", "build"));
 
         if (!new File(b.layout().mainJavaPath()).exists())
             throw new Error("Project not found.");
@@ -45,9 +44,10 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
         try
         {
             URLClassLoader classLoader = new URLClassLoader(new URL[] { new File(b.layout().targetMainBinPath())
-                .toURL() });
+                .toURL() }, _builderArgs.bbClassLoader());
 
             Project<?> project = discoverProject(".", classLoader).newInstance();
+            project.layout().projectPath(projectPath);
 
             String buildNum = Context.ctx().property("build#");
 
@@ -61,7 +61,7 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
             {
                 jar();
 
-                new FileTask(jarPath()).copyToDir(_bbHome + "lib/ext", true);
+                new FileTask(jarPath()).copyToDir(_builderArgs.bbHome() + "lib/ext", true);
             }
 
             return project;
@@ -75,7 +75,7 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
     @SuppressWarnings("unchecked")
     private Class<Project> discoverProject(String packageDir, ClassLoader loader) throws Exception
     {
-        TaskExecutor b = project();
+        ProjectBuilder b = project();
 
         String[] fileNames = new File(b.layout().targetMainBinPath(), packageDir).list();
 
@@ -122,6 +122,6 @@ public class ProjectLoader extends JavaModule<TaskExecutor>
     @Override
     public String mainClasspath()
     {
-        return _bbClasspath;
+        return _builderArgs.bbClasspath();
     }
 }

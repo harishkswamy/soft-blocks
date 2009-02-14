@@ -304,17 +304,18 @@ public class Utils
 
     public static byte[] readFile(File file)
     {
+        RandomAccessFile raf = null;
+
         try
         {
-            RandomAccessFile ra = new RandomAccessFile(file, "r");
-            long len = ra.length();
+            raf = new RandomAccessFile(file, "r");
+            long len = raf.length();
 
             if (len >= Integer.MAX_VALUE)
                 throw new Error("File " + file.getPath() + " is too large");
 
             byte[] buffer = new byte[(int) len];
-            ra.readFully(buffer);
-            ra.close();
+            raf.readFully(buffer);
 
             return buffer;
         }
@@ -322,22 +323,47 @@ public class Utils
         {
             throw new Error("Unable to read from file " + file, e);
         }
+        finally
+        {
+            try
+            {
+                if (raf != null)
+                    raf.close();
+            }
+            catch (Exception e)
+            {
+                // Ignore
+            }
+        }
     }
 
     public static File writeFile(File file, byte[] data)
     {
+        RandomAccessFile raf = null;
+
         try
         {
-            RandomAccessFile ra = new RandomAccessFile(file, "rw");
-            ra.write(data);
-            ra.setLength(data.length);
-            ra.close();
+            raf = new RandomAccessFile(file, "rw");
+            raf.write(data);
+            raf.setLength(data.length);
 
             return file;
         }
         catch (IOException e)
         {
             throw new Error("Unable to write to file " + file, e);
+        }
+        finally
+        {
+            try
+            {
+                if (raf != null)
+                    raf.close();
+            }
+            catch (Exception e)
+            {
+                // Ignore
+            }
         }
     }
 

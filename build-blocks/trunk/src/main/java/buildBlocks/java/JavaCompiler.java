@@ -29,6 +29,7 @@ public abstract class JavaCompiler
         {
             System.out.println("Source path: " + sourcePath);
             System.out.println("Class path: " + classPath);
+            System.out.println("Target path: " + targetPath);
         }
 
         if (!invokeCompiler(sourcePath, classPath, targetPath))

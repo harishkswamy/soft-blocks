@@ -1,0 +1,61 @@
+package buildBlocks.bootstrap;
+
+import buildBlocks.BuildError;
+import buildBlocks.Project;
+import buildBlocks.ProjectInfo;
+import buildBlocks.java.JavaLayout;
+
+/**
+ * @author hkrishna
+ */
+@ProjectInfo(group = "com.google.code.soft-blocks", version = "")
+public final class ProjectBuilder extends Project<JavaLayout>
+{
+    private BuilderArgs _builderArgs;
+    private Project<?>  _project;
+
+    ProjectBuilder(String version, BuilderArgs builderArgs)
+    {
+        super(new JavaLayout());
+        version(version);
+
+        _builderArgs = builderArgs;
+    }
+
+    void build()
+    {
+        try
+        {
+            System.out.println();
+            System.out.println("Loading project...");
+
+            // Load project
+            ProjectLoader loader = new ProjectLoader(this, _builderArgs);
+            _project = loader.loadProject(_builderArgs.exportProject());
+
+            System.out.println();
+
+            if (_builderArgs.tasks().length == 0)
+                throw new BuildError("", true, true);
+
+            // Execute tasks
+            System.out.println(String.format("Building %s...", _project.name()));
+            System.out.println();
+
+            long start = System.currentTimeMillis();
+
+            _project.execute(_builderArgs.tasks());
+
+            long end = System.currentTimeMillis();
+
+            System.out.println(String.format("Build succeeded in %ss.", (end - start) / 1000.0));
+            System.out.println();
+        }
+        catch (BuildError be)
+        {
+            be.project(_project);
+
+            throw be;
+        }
+    }
+}
