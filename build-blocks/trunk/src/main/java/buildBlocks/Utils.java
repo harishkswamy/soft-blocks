@@ -103,7 +103,7 @@ public class Utils
         return b.toString();
     }
 
-    public static Properties loadProperties(File file)
+    public static Properties loadProperties(File file, Properties defaults)
     {
         FileInputStream inputStream = null;
 
@@ -111,7 +111,7 @@ public class Utils
         {
             inputStream = new FileInputStream(file);
 
-            Properties props = new Properties();
+            Properties props = new Properties(defaults);
             props.load(inputStream);
 
             return props;

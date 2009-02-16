@@ -16,7 +16,7 @@ public class Builder
         new Builder().run(args);
     }
 
-    private BuilderArgs _builderArgs;
+    private BuilderCtx _builderCtx;
 
     private Builder()
     {
@@ -27,26 +27,40 @@ public class Builder
         return VERSION;
     }
 
-    BuilderArgs builderArgs()
+    BuilderCtx builderCtx()
     {
-        return _builderArgs;
+        return _builderCtx;
     }
 
     private void run(String[] args)
     {
         try
         {
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+            {
+                long start = System.currentTimeMillis();
+
+                public void run()
+                {
+                    long end = System.currentTimeMillis();
+                    System.out.println(String.format("Build completed in %ss.", (end - start) / 1000.0));
+                    System.out.println();
+                }
+            }));
+
             System.out.println();
             System.out.println("Loading...");
             System.out.println();
 
             // Parse arguments
-            _builderArgs = new BuilderArgs(args);
+            _builderCtx = new BuilderCtx(args);
 
-            if (_builderArgs.buildWorkspace())
-                new WorkspaceBuilder(version(), _builderArgs).build();
+            if (_builderCtx.tasks().length == 0)
+                printUsageHelp();
+            else if (_builderCtx.buildWorkspace())
+                new WorkspaceBuilder(version(), _builderCtx).build();
             else
-                new ProjectBuilder(version(), _builderArgs).build();
+                new ProjectBuilder(version(), _builderCtx).build();
         }
         catch (Throwable t)
         {
@@ -79,11 +93,20 @@ public class Builder
         System.out.println("Build Blocks");
         System.out.println("Version : " + VERSION);
         System.out.println("--------------------------------------------------------------");
-        System.out.println("Usage:");
-        System.out.println("    bb <options> [<workspaces> | <tasks>]");
-
+        System.out.println("Workspace Usage:");
+        System.out.println();
+        System.out.println("    bb <options> <workspace>");
+        System.out.println();
         System.out.println("Options:");
-        BuilderArgs.printOptions();
+        BuilderCtx.printWorkspaceOptions();
+        System.out.println();
+        System.out.println();
+        System.out.println("Project Usage:");
+        System.out.println();
+        System.out.println("    bb <options> <tasks>");
+        System.out.println();
+        System.out.println("Options:");
+        BuilderCtx.printProjectOptions();
 
         System.out.println("--------------------------------------------------------------");
         System.out.println();

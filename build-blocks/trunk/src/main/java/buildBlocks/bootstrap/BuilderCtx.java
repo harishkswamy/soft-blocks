@@ -8,41 +8,50 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import buildBlocks.BuildError;
+import buildBlocks.FileTask;
 
 /**
  * @author hkrishna
  */
-public class BuilderArgs
+public class BuilderCtx
 {
-    static void printOptions()
+    static void printWorkspaceOptions()
     {
-        System.out.println("    -D<name>=<value> : Set builder property");
-        System.out.println("    -e               : Export the project's build jar to build-blocks' lib");
+        System.out.println("    -cws             : Clean and build workspace");
+        System.out.println("    -D<name>=<value> : Set property");
         System.out.println("    -t               : Print trace messages");
-        System.out.println("    -ws              : Build the provided workspace");
+        System.out.println("    -ws              : Build workspace");
+    }
+
+    static void printProjectOptions()
+    {
+        System.out.println("    -D<name>=<value> : Set property");
+        System.out.println("    -e               : Export the project's builder");
+        System.out.println("    -t               : Print trace messages");
     }
 
     private String         _bbHome;
     private String         _bbClasspath;
     private URLClassLoader _bbClassLoader;
+    private boolean        _cleanWorkspace;
     private boolean        _buildWorkspace;
     private boolean        _exportProject;
     private String[]       _args;
 
-    BuilderArgs(String[] args)
+    BuilderCtx(String[] args)
     {
         parse(args);
         _bbClassLoader = buildClassLoader();
     }
 
-    private BuilderArgs()
+    private BuilderCtx()
     {
 
     }
 
-    public BuilderArgs create(String cmd)
+    public BuilderCtx create(String cmd)
     {
-        BuilderArgs bArgs = new BuilderArgs();
+        BuilderCtx bArgs = new BuilderCtx();
         bArgs._bbHome = _bbHome;
         bArgs._bbClasspath = buildClasspath();
         bArgs._bbClassLoader = buildClassLoader();
@@ -83,7 +92,7 @@ public class BuilderArgs
 
     private File[] extJars()
     {
-        return new File(_bbHome, "lib/ext").listFiles(new FilenameFilter()
+        return new File(_bbHome, "lib/builders").listFiles(new FilenameFilter()
         {
             public boolean accept(File dir, String name)
             {
@@ -109,6 +118,9 @@ public class BuilderArgs
         {
             if ("-ws".equals(args[i]))
                 _buildWorkspace = true;
+
+            else if ("-cws".equals(args[i]))
+                _buildWorkspace = _cleanWorkspace = true;
 
             else if ("-e".equals(args[i]))
                 _exportProject = true;
@@ -150,6 +162,11 @@ public class BuilderArgs
         return _bbClassLoader;
     }
 
+    boolean cleanWorkspace()
+    {
+        return _cleanWorkspace;
+    }
+
     boolean buildWorkspace()
     {
         return _buildWorkspace;
@@ -162,11 +179,16 @@ public class BuilderArgs
 
     String workspace()
     {
-        return _args[0];
+        return _args.length > 0 ? _args[0] : null;
     }
 
     String[] tasks()
     {
         return _args;
+    }
+
+    void exportBuilder(String jarPath)
+    {
+        new FileTask(jarPath).copyToDir(_bbHome + "lib/builders", true);
     }
 }

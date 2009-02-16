@@ -12,6 +12,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import buildBlocks.BuildError;
+import buildBlocks.Context;
+import buildBlocks.FileTask;
 import buildBlocks.Utils;
 import buildBlocks.repos.SourceRepository;
 
@@ -118,7 +120,7 @@ public class WorkspaceBuilder
         {
             try
             {
-                ProjectBuilder builder = new ProjectBuilder(_version, _builderArgs.create(_buildCmd));
+                ProjectBuilder builder = new ProjectBuilder(_version, _builderCtx.create(_buildCmd));
                 builder.layout().projectPath(_name);
                 builder.build();
             }
@@ -134,19 +136,22 @@ public class WorkspaceBuilder
     }
 
     private volatile String            _version;
-    private volatile BuilderArgs       _builderArgs;
+    private volatile BuilderCtx        _builderCtx;
     private Map<String, ReposConfig>   _wsRepos    = new HashMap<String, ReposConfig>();
     private Map<String, ProjectConfig> _wsProjects = new HashMap<String, ProjectConfig>();
 
-    WorkspaceBuilder(String version, BuilderArgs builderArgs)
+    WorkspaceBuilder(String version, BuilderCtx builderCtx)
     {
         _version = version;
-        _builderArgs = builderArgs;
+        _builderCtx = builderCtx;
     }
 
     void build()
     {
-        List<List<ProjectConfig>> wsProjects = parseWorkspace(new File(_builderArgs.workspace() + ".workspace"));
+        if (_builderCtx.cleanWorkspace())
+            cleanWorkspace();
+        
+        List<List<ProjectConfig>> wsProjects = parseWorkspace(new File(_builderCtx.workspace() + ".workspace"));
 
         checkoutProjects(wsProjects);
 
@@ -155,9 +160,22 @@ public class WorkspaceBuilder
         buildProjects(wsProjects);
     }
 
+    private void cleanWorkspace()
+    {
+        FileTask fileTask = new FileTask("");
+
+        for (File file : new File(".").listFiles())
+        {
+            if (file.isDirectory())
+                fileTask.reset(file.getPath()).delete();
+        }
+    }
+
     private void buildProjects(List<List<ProjectConfig>> wsProjects)
     {
-        ExecutorService builders = Executors.newFixedThreadPool(1);
+        int threads = Integer.parseInt(Context.ctx().property("workspace.builder.threads", "1"));
+        threads = threads > 0 ? threads : 1;
+        ExecutorService builders = Executors.newFixedThreadPool(threads);
 
         for (List<ProjectConfig> hopPrjs : wsProjects)
         {
@@ -194,7 +212,9 @@ public class WorkspaceBuilder
 
     private void checkoutProjects(List<List<ProjectConfig>> wsProjects)
     {
-        ExecutorService coWorkers = Executors.newFixedThreadPool(1);
+        int threads = Integer.parseInt(Context.ctx().property("workspace.checkout.threads", "1"));
+        threads = threads > 0 ? threads : 1;
+        ExecutorService coWorkers = Executors.newFixedThreadPool(threads);
 
         for (List<ProjectConfig> hopPrjs : wsProjects)
         {
@@ -215,7 +235,7 @@ public class WorkspaceBuilder
 
     private List<List<ProjectConfig>> parseWorkspace(File wsFile)
     {
-        Properties wsProps = Utils.loadProperties(wsFile);
+        Properties wsProps = Utils.loadProperties(wsFile, null);
 
         for (Object keyObj : wsProps.keySet())
         {

@@ -11,15 +11,15 @@ import buildBlocks.java.JavaLayout;
 @ProjectInfo(group = "com.google.code.soft-blocks", version = "")
 public final class ProjectBuilder extends Project<JavaLayout>
 {
-    private BuilderArgs _builderArgs;
-    private Project<?>  _project;
+    private BuilderCtx _builderCtx;
+    private Project<?> _project;
 
-    ProjectBuilder(String version, BuilderArgs builderArgs)
+    ProjectBuilder(String version, BuilderCtx builderCtx)
     {
         super(new JavaLayout());
         version(version);
 
-        _builderArgs = builderArgs;
+        _builderCtx = builderCtx;
     }
 
     void build()
@@ -30,12 +30,12 @@ public final class ProjectBuilder extends Project<JavaLayout>
             System.out.println("Loading project...");
 
             // Load project
-            ProjectLoader loader = new ProjectLoader(this, _builderArgs);
-            _project = loader.loadProject(_builderArgs.exportProject());
+            ProjectLoader loader = new ProjectLoader(this, _builderCtx);
+            _project = loader.loadProject(_builderCtx.exportProject());
 
             System.out.println();
 
-            if (_builderArgs.tasks().length == 0)
+            if (_builderCtx.tasks().length == 0)
                 throw new BuildError("", true, true);
 
             // Execute tasks
@@ -44,11 +44,11 @@ public final class ProjectBuilder extends Project<JavaLayout>
 
             long start = System.currentTimeMillis();
 
-            _project.execute(_builderArgs.tasks());
+            _project.execute(_builderCtx.tasks());
 
             long end = System.currentTimeMillis();
 
-            System.out.println(String.format("Build succeeded in %ss.", (end - start) / 1000.0));
+            System.out.println(String.format("Project built successfully in %ss.", (end - start) / 1000.0));
             System.out.println();
         }
         catch (BuildError be)

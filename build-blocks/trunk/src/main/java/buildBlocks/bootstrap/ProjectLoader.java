@@ -7,7 +7,6 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 import buildBlocks.Context;
-import buildBlocks.FileTask;
 import buildBlocks.ModuleInfo;
 import buildBlocks.Project;
 import buildBlocks.ProjectInfo;
@@ -20,13 +19,13 @@ import buildBlocks.java.JavaModule;
 @ModuleInfo(id = "_bbbm_")
 public class ProjectLoader extends JavaModule<ProjectBuilder>
 {
-    private BuilderArgs _builderArgs;
+    private BuilderCtx _builderCtx;
 
-    public ProjectLoader(ProjectBuilder projectBuilder, BuilderArgs builderArgs)
+    public ProjectLoader(ProjectBuilder projectBuilder, BuilderCtx builderCtx)
     {
         super("1.5", projectBuilder);
 
-        _builderArgs = builderArgs;
+        _builderCtx = builderCtx;
     }
 
     Project<?> loadProject(boolean exportBuilder)
@@ -44,7 +43,7 @@ public class ProjectLoader extends JavaModule<ProjectBuilder>
         try
         {
             URLClassLoader classLoader = new URLClassLoader(new URL[] { new File(b.layout().targetMainBinPath())
-                .toURL() }, _builderArgs.bbClassLoader());
+                .toURL() }, _builderCtx.bbClassLoader());
 
             Project<?> project = discoverProject(".", classLoader).newInstance();
             project.layout().projectPath(projectPath);
@@ -60,8 +59,7 @@ public class ProjectLoader extends JavaModule<ProjectBuilder>
             if (exportBuilder)
             {
                 jar();
-
-                new FileTask(jarPath()).copyToDir(_builderArgs.bbHome() + "lib/ext", true);
+                _builderCtx.exportBuilder(jarPath());
             }
 
             return project;
@@ -122,6 +120,6 @@ public class ProjectLoader extends JavaModule<ProjectBuilder>
     @Override
     public String mainClasspath()
     {
-        return _builderArgs.bbClasspath();
+        return _builderCtx.bbClasspath();
     }
 }

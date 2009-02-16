@@ -43,6 +43,8 @@ public class Svn implements SourceRepository
     {
         try
         {
+            System.setProperty("svnkit.http.methods", "Basic,Digest,Negotiate,NTLM");
+
             DAVRepositoryFactory.setup();
             SVNRepositoryFactoryImpl.setup();
             FSRepositoryFactory.setup();

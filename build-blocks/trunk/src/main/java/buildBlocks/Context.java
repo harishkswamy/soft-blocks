@@ -54,12 +54,18 @@ public class Context
 
     private Properties loadProps()
     {
-        File file = new File(System.getProperty("user.home") + "/.build-blocks/settings.properties");
+        Properties global = loadProps(getClass().getResource("/settings.properties").getPath(), null);
+        return loadProps(System.getProperty("user.home") + "/.build-blocks/settings.properties", global);
+    }
+
+    private Properties loadProps(String propsFilePath, Properties defaults)
+    {
+        File file = new File(propsFilePath);
 
         if (!file.exists())
-            return new Properties();
+            return defaults;
 
-        return Utils.loadProperties(file);
+        return Utils.loadProperties(file, defaults);
     }
 
     public void trace(boolean trace)

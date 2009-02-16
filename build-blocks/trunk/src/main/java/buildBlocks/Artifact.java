@@ -14,15 +14,19 @@ import java.util.Map;
 public class Artifact
 {
     private static final List<String>          _remoteRepositories = new ArrayList<String>();
-    private static String                      _localRepository    = System.getProperty("user.home")
-                                                                       + "/.m2/repository/";
-
+    private static String                      _localRepository;
     private static final Map<String, Artifact> _artifacts          = new HashMap<String, Artifact>();
 
     static
     {
-        _remoteRepositories.add("http://repo1.maven.org/maven2/");
-        _remoteRepositories.add("http://mirrors.ibiblio.org/pub/mirrors/maven2/");
+        _localRepository = ctx()
+            .property("local.repository.path", System.getProperty("user.home") + "/.m2/repository/");
+
+        String[] urls = ctx().property("remote.repository.urls",
+            "http://repo1.maven.org/maven2/, http://mirrors.ibiblio.org/pub/mirrors/maven2/").split(",");
+
+        for (String url : urls)
+            _remoteRepositories.add(url);
     }
 
     public static void localRepository(String path)
