@@ -35,9 +35,6 @@ public final class ProjectBuilder extends Project<JavaLayout>
 
             System.out.println();
 
-            if (_builderCtx.tasks().length == 0)
-                throw new BuildError("", true, true);
-
             // Execute tasks
             System.out.println(String.format("Building %s...", _project.name()));
             System.out.println();

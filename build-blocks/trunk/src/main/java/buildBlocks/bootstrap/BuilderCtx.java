@@ -41,6 +41,7 @@ public class BuilderCtx
     BuilderCtx(String[] args)
     {
         parse(args);
+        _bbClasspath = buildClasspath();
         _bbClassLoader = buildClassLoader();
     }
 
