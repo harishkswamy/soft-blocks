@@ -62,15 +62,31 @@ public class WorkspaceBuilder
         volatile String          _reposRev;
         volatile ProjectConfig[] _deps;
         volatile String          _buildCmd;
+        volatile int             _maxHopsToRoot;
+        volatile boolean         _needToBuild;
 
         CountDownLatch           _checkout = new CountDownLatch(1);
         CountDownLatch           _build    = new CountDownLatch(1);
+
+        boolean isDep(ProjectConfig pc)
+        {
+            if (_deps == null || _deps.length == 0)
+                return false;
+            
+            for (ProjectConfig dep : _deps)
+            {
+                if (dep == pc || dep.isDep(pc))
+                    return true;
+            }
+
+            return false;
+        }
 
         void checkout()
         {
             try
             {
-                _repos.checkout(_reposRev, _reposPath, _name);
+                _reposRev = String.valueOf(_repos.checkout(_reposRev, _reposPath, _name));
             }
             finally
             {
@@ -120,7 +136,10 @@ public class WorkspaceBuilder
         {
             try
             {
-                ProjectBuilder builder = new ProjectBuilder(_version, _builderCtx.create(_buildCmd));
+                BuilderCtx bCtx = _builderCtx.create(_buildCmd);
+                bCtx.setProperty("build#", _reposRev);
+
+                ProjectBuilder builder = new ProjectBuilder(_version, bCtx);
                 builder.layout().projectPath(_name);
                 builder.build();
             }
@@ -137,8 +156,8 @@ public class WorkspaceBuilder
 
     private volatile String            _version;
     private volatile BuilderCtx        _builderCtx;
-    private Map<String, ReposConfig>   _wsRepos    = new HashMap<String, ReposConfig>();
-    private Map<String, ProjectConfig> _wsProjects = new HashMap<String, ProjectConfig>();
+    private Map<String, ReposConfig>   _repos    = new HashMap<String, ReposConfig>();
+    private Map<String, ProjectConfig> _projects = new HashMap<String, ProjectConfig>();
 
     WorkspaceBuilder(String version, BuilderCtx builderCtx)
     {
@@ -150,14 +169,14 @@ public class WorkspaceBuilder
     {
         if (_builderCtx.cleanWorkspace())
             cleanWorkspace();
-        
-        List<List<ProjectConfig>> wsProjects = parseWorkspace(new File(_builderCtx.workspace() + ".workspace"));
 
-        checkoutProjects(wsProjects);
+        List<List<ProjectConfig>> projects = parseWorkspace(new File(_builderCtx.workspace()[0] + ".workspace"));
 
-        wsProjects.get(0).get(0).awaitCheckout();
+        checkoutProjects(projects);
 
-        buildProjects(wsProjects);
+        projects.get(0).get(0).awaitCheckout();
+
+        buildProjects(projects);
     }
 
     private void cleanWorkspace()
@@ -179,11 +198,13 @@ public class WorkspaceBuilder
 
         for (List<ProjectConfig> hopPrjs : wsProjects)
         {
-            do
+            while (true)
             {
                 for (int i = 0; i < hopPrjs.size();)
                 {
-                    if (hopPrjs.get(i).readyToBuild(0))
+                    ProjectConfig hopPrj = hopPrjs.get(i);
+
+                    if (hopPrj.readyToBuild(0))
                     {
                         final ProjectConfig prjConfig = hopPrjs.remove(i);
 
@@ -204,7 +225,6 @@ public class WorkspaceBuilder
                 else
                     break;
             }
-            while (true);
         }
 
         builders.shutdown();
@@ -279,26 +299,45 @@ public class WorkspaceBuilder
             }
         }
 
-        return sortProjectsByDependency();
+        return filterAndSortProjectsByDependency();
     }
 
-    private List<List<ProjectConfig>> sortProjectsByDependency()
+    private List<List<ProjectConfig>> filterAndSortProjectsByDependency()
     {
         List<List<ProjectConfig>> wsProjects = new ArrayList<List<ProjectConfig>>();
 
-        for (ProjectConfig pc : _wsProjects.values())
+        for (ProjectConfig prj : _projects.values())
         {
-            int hops = maxHopsToRoot(pc);
+            if (!needToBuild(prj))
+                continue;
+
+            int hops = maxHopsToRoot(prj);
 
             while (hops >= wsProjects.size())
                 wsProjects.add(new ArrayList<ProjectConfig>());
 
             List<ProjectConfig> hopList = wsProjects.get(hops);
 
-            hopList.add(pc);
+            hopList.add(prj);
         }
 
         return wsProjects;
+    }
+
+    private boolean needToBuild(ProjectConfig pc)
+    {
+        if (_builderCtx.workspace().length == 1 || pc._needToBuild)
+            return true;
+
+        for (int i = 1; i < _builderCtx.workspace().length; i++)
+        {
+            ProjectConfig prj = _projects.get(_builderCtx.workspace()[i]);
+
+            if (prj == pc || prj.isDep(pc))
+                return pc._needToBuild = true;
+        }
+
+        return false;
     }
 
     private int maxHopsToRoot(ProjectConfig pc)
@@ -306,27 +345,30 @@ public class WorkspaceBuilder
         if (pc._deps == null || pc._deps.length == 0)
             return 0;
 
-        int maxHops = 1;
+        if (pc._maxHopsToRoot > 0)
+            return pc._maxHopsToRoot;
+
+        pc._maxHopsToRoot = 1;
 
         for (ProjectConfig dep : pc._deps)
         {
             int depMaxHops = maxHopsToRoot(dep) + 1;
 
-            if (maxHops < depMaxHops)
-                maxHops = depMaxHops;
+            if (pc._maxHopsToRoot < depMaxHops)
+                pc._maxHopsToRoot = depMaxHops;
         }
 
-        return maxHops;
+        return pc._maxHopsToRoot;
     }
 
     private ReposConfig getReposConfig(String name)
     {
-        ReposConfig reposConfig = _wsRepos.get(name);
+        ReposConfig reposConfig = _repos.get(name);
 
         if (reposConfig == null)
         {
             reposConfig = new ReposConfig();
-            _wsRepos.put(name, reposConfig);
+            _repos.put(name, reposConfig);
         }
 
         return reposConfig;
@@ -334,13 +376,13 @@ public class WorkspaceBuilder
 
     private ProjectConfig getProjectConfig(String name)
     {
-        ProjectConfig projectConfig = _wsProjects.get(name);
+        ProjectConfig projectConfig = _projects.get(name);
 
         if (projectConfig == null)
         {
             projectConfig = new ProjectConfig();
             projectConfig._name = name;
-            _wsProjects.put(name, projectConfig);
+            _projects.put(name, projectConfig);
         }
 
         return projectConfig;

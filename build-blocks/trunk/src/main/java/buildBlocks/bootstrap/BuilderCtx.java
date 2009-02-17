@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.HashMap;
+import java.util.Map;
 
 import buildBlocks.BuildError;
 import buildBlocks.FileTask;
@@ -30,13 +32,14 @@ public class BuilderCtx
         System.out.println("    -t               : Print trace messages");
     }
 
-    private String         _bbHome;
-    private String         _bbClasspath;
-    private URLClassLoader _bbClassLoader;
-    private boolean        _cleanWorkspace;
-    private boolean        _buildWorkspace;
-    private boolean        _exportProject;
-    private String[]       _args;
+    private String              _bbHome;
+    private String              _bbClasspath;
+    private URLClassLoader      _bbClassLoader;
+    private boolean             _cleanWorkspace;
+    private boolean             _buildWorkspace;
+    private boolean             _exportProject;
+    private String[]            _args;
+    private Map<String, String> _props = new HashMap<String, String>();
 
     BuilderCtx(String[] args)
     {
@@ -132,7 +135,7 @@ public class BuilderCtx
             else if (args[i].startsWith("-D"))
             {
                 String[] prop = args[i].substring(2).split("=");
-                ctx().setProperty(prop[0].trim(), prop[1].trim());
+                _props.put(prop[0].trim(), prop[1].trim());
             }
             else if (args[i].startsWith("-"))
                 throw new BuildError(String.format("Invalid option : %s.", args[i]), true, false);
@@ -178,9 +181,9 @@ public class BuilderCtx
         return _exportProject;
     }
 
-    String workspace()
+    String[] workspace()
     {
-        return _args.length > 0 ? _args[0] : null;
+        return _args;
     }
 
     String[] tasks()
@@ -191,5 +194,15 @@ public class BuilderCtx
     void exportBuilder(String jarPath)
     {
         new FileTask(jarPath).copyToDir(_bbHome + "lib/builders", true);
+    }
+
+    public String property(String key)
+    {
+        return _props.get(key);
+    }
+
+    public String setProperty(String key, String value)
+    {
+        return _props.put(key, value);
     }
 }

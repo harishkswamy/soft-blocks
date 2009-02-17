@@ -6,7 +6,6 @@ import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import buildBlocks.Context;
 import buildBlocks.ModuleInfo;
 import buildBlocks.Project;
 import buildBlocks.ProjectInfo;
@@ -48,7 +47,7 @@ public class ProjectLoader extends JavaModule<ProjectBuilder>
             Project<?> project = discoverProject(".", classLoader).newInstance();
             project.layout().projectPath(projectPath);
 
-            String buildNum = Context.ctx().property("build#");
+            String buildNum = _builderCtx.property("build#");
 
             if (buildNum != null)
                 project.buildNum(buildNum);

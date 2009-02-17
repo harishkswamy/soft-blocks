@@ -95,7 +95,7 @@ public class Builder
         System.out.println("--------------------------------------------------------------");
         System.out.println("Workspace Usage:");
         System.out.println();
-        System.out.println("    bb <options> <workspace>");
+        System.out.println("    bb <options> <workspace> [<projects>]");
         System.out.println();
         System.out.println("Options:");
         BuilderCtx.printWorkspaceOptions();
