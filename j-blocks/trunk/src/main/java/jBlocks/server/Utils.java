@@ -14,6 +14,9 @@
 
 package jBlocks.server;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -21,7 +24,7 @@ import java.util.Properties;
 
 /**
  * @author Harish Krishnaswamy
- * @version $Id: Utils.java,v 1.6 2005/10/06 21:59:25 harishkswamy Exp $
+ * @version $Id: BuildUtils.java,v 1.6 2005/10/06 21:59:25 harishkswamy Exp $
  */
 public class Utils
 {
@@ -119,6 +122,51 @@ public class Utils
             return new Locale(parts[0], parts[1]);
         else
             return new Locale(parts[0], parts[1], parts[2]);
+    }
+
+    public static String trim(String str, String trim)
+    {
+        int start = 0;
+
+        while (str.startsWith(trim, start))
+            start += trim.length();
+
+        str = str.substring(start);
+
+        while (str.endsWith(trim))
+            str = str.substring(0, str.length() - trim.length());
+
+        return str;
+    }
+
+    public static Properties loadProperties(File file, Properties defaults)
+    {
+        FileInputStream inputStream = null;
+
+        try
+        {
+            inputStream = new FileInputStream(file);
+
+            Properties props = new Properties(defaults);
+            props.load(inputStream);
+
+            return props;
+        }
+        catch (IOException e)
+        {
+            throw AggregateException.with("Unable to load properties from file: " + file, e);
+        }
+        finally
+        {
+            try
+            {
+                if (inputStream != null)
+                    inputStream.close();
+            }
+            catch (IOException e)
+            {
+            }
+        }
     }
 
     private Utils()
