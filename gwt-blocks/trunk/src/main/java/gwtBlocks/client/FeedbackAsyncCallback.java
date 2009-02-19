@@ -22,6 +22,7 @@ import java.util.Map;
 import com.google.gwt.i18n.client.ConstantsWithLookup;
 import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.rpc.AsyncCallback;
+import com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException;
 
 /**
  * @author hkrishna
@@ -96,6 +97,11 @@ public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
         catch (RPCMessageException e)
         {
             MessageBox.alert(getMessage(e.getLocalizedMessage()), _rpcErrorCommands.get(e.getLocalizedMessage()));
+        }
+        catch (IncompatibleRemoteServiceException e)
+        {
+            MessageBox.error(GwtBlocksMessages.pick.incompatibleRemoteServiceException(), _rpcErrorCommands
+                .get("incompatibleRemoteServiceException"));
         }
         catch (Throwable t)
         {
