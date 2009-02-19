@@ -9,7 +9,6 @@ public class BuildError extends Error
 
     private boolean           _showUsageHelp;
     private boolean           _showProjectHelp;
-    private Project<?>        _project;
 
     public BuildError(String message, Throwable cause, boolean showUsageHelp, boolean showProjectHelp)
     {
@@ -43,15 +42,5 @@ public class BuildError extends Error
     public boolean showProjectHelp()
     {
         return _showProjectHelp;
-    }
-
-    public void project(Project<?> project)
-    {
-        _project = project;
-    }
-
-    public Project<?> project()
-    {
-        return _project;
     }
 }

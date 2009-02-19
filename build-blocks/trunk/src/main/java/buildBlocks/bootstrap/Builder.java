@@ -1,114 +1,216 @@
 package buildBlocks.bootstrap;
 
-import static buildBlocks.Context.*;
+import static buildBlocks.BuildCtx.*;
+
+import jBlocks.server.Utils;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.net.URL;
+import java.net.URLClassLoader;
 
 import buildBlocks.BuildError;
+import buildBlocks.FileTask;
 
 /**
  * @author hkrishna
  */
-public class Builder
+abstract class Builder
 {
-    private static final String VERSION = "0.8.0";
+    private static final String     _version = "0.8.0";
+    private static final String     _libExt  = "lib/ext";
 
-    public static void main(String[] args)
+    private static volatile String  _home;
+    private static volatile String  _bootClasspath;
+    private static volatile boolean _buildFailed;
+
+    public static String version()
     {
-        new Builder().run(args);
+        return _version;
     }
 
-    private BuilderCtx _builderCtx;
+    private String[] _buildParams;
 
-    private Builder()
+    protected Builder(String[] args)
     {
+        if (args.length < 2)
+            throw new Error("Insufficient arguments to builder.");
+
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+        {
+            long start = System.currentTimeMillis();
+
+            public void run()
+            {
+                long end = System.currentTimeMillis();
+
+                if (_buildFailed)
+                    System.out.println("BUILD FAILED!\n");
+
+                System.out.println(String.format("Build completed in %ss.", (end - start) / 1000.0));
+                System.out.println();
+            }
+        }));
+
+        _home = args[0];
+        _bootClasspath = args[1];
+
+        String[] bArgs = new String[args.length - 2];
+        System.arraycopy(args, 2, bArgs, 0, bArgs.length);
+
+        parse(bArgs);
     }
 
-    String version()
+    protected Builder(String cmd)
     {
-        return VERSION;
+        parse(Utils.splitQuoted(cmd, ' ').toArray(new String[0]));
     }
 
-    BuilderCtx builderCtx()
+    protected void parse(String[] args)
     {
-        return _builderCtx;
+        int start = 0;
+
+        for (int i = 0; i < args.length; i++)
+        {
+            if ("-t".equals(args[i]))
+                ctx().setTrace(true);
+
+            else if (args[i].startsWith("-D"))
+            {
+                String[] prop = args[i].substring(2).split("=");
+                ctx().putInThread(prop[0].trim(), prop[1].trim());
+            }
+            else if (parse(args[i]))
+                ; // Handled by the subclass
+
+            else if (args[i].startsWith("-"))
+                throw new BuildError(String.format("Invalid option : %s.", args[i]), true, false);
+
+            else
+                break;
+
+            start = i + 1;
+        }
+
+        _buildParams = new String[args.length - start];
+
+        System.arraycopy(args, start, _buildParams, 0, args.length - start);
     }
 
-    private void run(String[] args)
+    protected abstract boolean parse(String arg);
+
+    protected String buildExtClasspath()
+    {
+        File[] extJars = extJars();
+
+        StringBuilder b = new StringBuilder(_bootClasspath);
+
+        for (File jar : extJars)
+            b.append(File.pathSeparatorChar).append(jar.getPath());
+
+        return b.toString();
+    }
+
+    protected URLClassLoader buildExtClassLoader()
     {
         try
         {
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+            File[] extJars = extJars();
+            URL[] urls = new URL[extJars.length];
+
+            for (int i = 0; i < extJars.length; i++)
+                urls[i] = extJars[i].toURL();
+
+            return new URLClassLoader(urls);
+        }
+        catch (Exception e)
+        {
+            throw new Error("Unable to build extension class loader", e);
+        }
+    }
+
+    private File[] extJars()
+    {
+        return new File(_home, _libExt).listFiles(new FilenameFilter()
+        {
+            public boolean accept(File dir, String name)
             {
-                long start = System.currentTimeMillis();
+                return name.endsWith(".jar");
+            }
+        });
+    }
 
-                public void run()
-                {
-                    long end = System.currentTimeMillis();
-                    System.out.println(String.format("Build completed in %ss.", (end - start) / 1000.0));
-                    System.out.println();
-                }
-            }));
+    protected String[] buildParams()
+    {
+        return _buildParams;
+    }
 
+    protected void run()
+    {
+        try
+        {
             System.out.println();
-            System.out.println("Loading...");
+            System.out.println("Loading builder...");
             System.out.println();
 
-            // Parse arguments
-            _builderCtx = new BuilderCtx(args);
-
-            if (_builderCtx.tasks().length == 0)
-                printUsageHelp();
-            else if (_builderCtx.buildWorkspace())
-                new WorkspaceBuilder(version(), _builderCtx).build();
+            if (_buildParams.length == 0)
+            {
+                printUseHelp();
+                printProjectHelp();
+            }
             else
-                new ProjectBuilder(version(), _builderCtx).build();
+                build();
         }
         catch (Throwable t)
         {
-            if (ctx().traceOn())
-                t.printStackTrace();
-            else
-                System.out.println(String.format("%s%n%nUse -t option to see the stack trace.", t));
-
-            System.out.println();
-
-            if (t instanceof BuildError)
-            {
-                BuildError e = (BuildError) t;
-
-                if (e.showUsageHelp())
-                    printUsageHelp();
-
-                if (e.showProjectHelp() && e.project() != null)
-                    e.project().help();
-            }
-
-            System.out.println("Build failed.");
-            System.out.println();
+            handleError(t);
             System.exit(-1);
         }
     }
 
-    private void printUsageHelp()
+    protected void handleError(Throwable t)
+    {
+        _buildFailed = true;
+
+        if (ctx().traceOn())
+            t.printStackTrace();
+        else
+            System.out.println(String.format("%s%n%nUse -t option to see the stack trace.", t));
+
+        System.out.println();
+
+        if (t instanceof BuildError)
+        {
+            BuildError e = (BuildError) t;
+
+            if (e.showUsageHelp())
+                printUseHelp();
+
+            if (e.showProjectHelp())
+                printProjectHelp();
+        }
+    }
+
+    protected abstract void build();
+
+    private void printUseHelp()
     {
         System.out.println("Build Blocks");
-        System.out.println("Version : " + VERSION);
+        System.out.println("Version : " + version());
         System.out.println("--------------------------------------------------------------");
-        System.out.println("Workspace Usage:");
-        System.out.println();
-        System.out.println("    bb <options> <workspace> [<projects>]");
-        System.out.println();
-        System.out.println("Options:");
-        BuilderCtx.printWorkspaceOptions();
-        System.out.println();
-        System.out.println();
-        System.out.println("Project Usage:");
-        System.out.println();
-        System.out.println("    bb <options> <tasks>");
-        System.out.println();
-        System.out.println("Options:");
-        BuilderCtx.printProjectOptions();
+
+        printUsageHelp();
 
         System.out.println("--------------------------------------------------------------");
         System.out.println();
+    }
+
+    protected abstract void printUsageHelp();
+
+    protected abstract void printProjectHelp();
+
+    protected void copyToLibExt(String jarPath)
+    {
+        new FileTask(jarPath).copyToDir(_home + _libExt, true);
     }
 }

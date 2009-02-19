@@ -3,7 +3,7 @@ package buildBlocks.java;
 import java.io.File;
 import java.util.List;
 
-import buildBlocks.Context;
+import buildBlocks.BuildCtx;
 import buildBlocks.FileTask;
 
 import com.sun.tools.javac.Main;
@@ -33,7 +33,7 @@ public class SunCompiler extends JavaCompiler
         for (File dir : srcDirs)
             args[idx++] = dir.getPath();
 
-        if (Context.ctx().traceOn())
+        if (BuildCtx.ctx().traceOn())
         {
             StringBuilder b = new StringBuilder();
 

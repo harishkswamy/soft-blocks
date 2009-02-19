@@ -225,7 +225,7 @@ public class FileTask
                     // If overwrite or the destination file does not exist or it is older than the source file, 
                     // then copy
                     if (_forceWrite || destFile.createNewFile() || destFile.lastModified() < srcFile.lastModified())
-                        Utils.writeFile(destFile, Utils.readFile(srcFile));
+                        BuildUtils.writeFile(destFile, BuildUtils.readFile(srcFile));
                 }
                 catch (IOException e)
                 {

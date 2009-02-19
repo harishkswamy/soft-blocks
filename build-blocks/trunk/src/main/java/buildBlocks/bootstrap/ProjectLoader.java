@@ -1,64 +1,75 @@
 package buildBlocks.bootstrap;
 
-import static buildBlocks.Context.*;
+import static buildBlocks.BuildCtx.*;
+
+import jBlocks.server.Utils;
 
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import buildBlocks.ModuleInfo;
 import buildBlocks.Project;
 import buildBlocks.ProjectInfo;
-import buildBlocks.Utils;
+import buildBlocks.java.JavaLayout;
 import buildBlocks.java.JavaModule;
 
 /**
  * @author hkrishna
  */
-@ModuleInfo(id = "_bbbm_")
-public class ProjectLoader extends JavaModule<ProjectBuilder>
+@ProjectInfo(group = "com.google.code.soft-blocks", version = "")
+public class ProjectLoader extends Project<JavaLayout>
 {
-    private BuilderCtx _builderCtx;
+    private ProjectBuilder _builder;
 
-    public ProjectLoader(ProjectBuilder projectBuilder, BuilderCtx builderCtx)
+    public ProjectLoader(ProjectBuilder builder)
     {
-        super("1.5", projectBuilder);
+        super(new JavaLayout());
+        version(Builder.version());
 
-        _builderCtx = builderCtx;
+        _builder = builder;
+
+        layout().projectPath(_builder.projectPath());
+
+        String buildJavaVersion = ctx().getFromThread("build.java.version", "1.5");
+        module(JavaModule.class, new JavaModule<ProjectLoader>(buildJavaVersion, this)
+        {
+            @Override
+            public String mainClasspath()
+            {
+                return _builder.classpath();
+            }
+        });
     }
 
-    Project<?> loadProject(boolean exportBuilder)
+    Project<?> loadProject()
     {
-        ProjectBuilder b = project();
+        String projectPath = layout().projectPath();
+        layout().projectPath(projectPath + ctx().getFromThread("build.dir", "build"));
 
-        String projectPath = b.layout().projectPath();
-        b.layout().projectPath(projectPath + ctx().property("build.dir", "build"));
-
-        if (!new File(b.layout().mainJavaPath()).exists())
+        if (!new File(layout().mainJavaPath()).exists())
             throw new Error("Project not found.");
 
-        compile();
+        JavaModule<?> jMod = module(JavaModule.class);
+
+        jMod.compile();
 
         try
         {
-            URLClassLoader classLoader = new URLClassLoader(new URL[] { new File(b.layout().targetMainBinPath())
-                .toURL() }, _builderCtx.bbClassLoader());
+            URLClassLoader classLoader = new URLClassLoader(
+                new URL[] { new File(layout().targetMainBinPath()).toURL() }, _builder.classLoader());
 
             Project<?> project = discoverProject(".", classLoader).newInstance();
+
             project.layout().projectPath(projectPath);
-
-            String buildNum = _builderCtx.property("build#");
-
-            if (buildNum != null)
-                project.buildNum(buildNum);
+            project.buildNum(_builder.buildNum());
 
             // b.classifier(project.id() + '-' + project.version());
-            b.classifier(project.id());
+            classifier(project.id());
 
-            if (exportBuilder)
+            if (_builder.exportBuilder())
             {
-                jar();
-                _builderCtx.exportBuilder(jarPath());
+                jMod.jar();
+                _builder.exportBuilder(jMod.jarPath());
             }
 
             return project;
@@ -72,16 +83,14 @@ public class ProjectLoader extends JavaModule<ProjectBuilder>
     @SuppressWarnings("unchecked")
     private Class<Project> discoverProject(String packageDir, ClassLoader loader) throws Exception
     {
-        ProjectBuilder b = project();
-
-        String[] fileNames = new File(b.layout().targetMainBinPath(), packageDir).list();
+        String[] fileNames = new File(layout().targetMainBinPath(), packageDir).list();
 
         if (fileNames == null)
             throw new Error("Unable to find project class.");
 
         for (String fileName : fileNames)
         {
-            File file = new File(b.layout().targetMainBinPath(), packageDir + '/' + fileName);
+            File file = new File(layout().targetMainBinPath(), packageDir + '/' + fileName);
 
             if (file.isDirectory())
             {
@@ -114,11 +123,5 @@ public class ProjectLoader extends JavaModule<ProjectBuilder>
 
         throw new Error("Unable to find project class.\nHint: Make sure the project class is annotated with "
             + ProjectInfo.class);
-    }
-
-    @Override
-    public String mainClasspath()
-    {
-        return _builderCtx.bbClasspath();
     }
 }

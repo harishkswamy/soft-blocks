@@ -29,7 +29,7 @@ public class JarTask extends AbstractZipTask<JarTask>
 
     public JarTask create()
     {
-        File manifest = Utils.writeFile(new File(System.getProperty("java.io.tmpdir"), "MANIFEST.MF"), _manifest
+        File manifest = BuildUtils.writeFile(new File(System.getProperty("java.io.tmpdir"), "MANIFEST.MF"), _manifest
             .toString().getBytes());
         to("META-INF").from(manifest.getParent()).add(manifest.getPath());
         return create(true);

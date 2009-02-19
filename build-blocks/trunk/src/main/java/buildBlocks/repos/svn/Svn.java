@@ -1,5 +1,7 @@
 package buildBlocks.repos.svn;
 
+import jBlocks.server.AggregateException;
+
 import java.io.File;
 
 import org.tmatesoft.svn.core.SVNCancelException;
@@ -78,7 +80,7 @@ public class Svn implements SourceRepository
         }
         catch (Exception e)
         {
-            throw new BuildError(e, false, false);
+            throw AggregateException.with(e);
         }
     }
 }

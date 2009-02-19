@@ -1,11 +1,10 @@
 package buildBlocks;
 
-import static buildBlocks.Context.*;
+import static buildBlocks.BuildCtx.*;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,12 +14,11 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Properties;
 
 /**
  * @author hkrishna
  */
-public class Utils
+public class BuildUtils
 {
     public static File download(String srcUrl, String targetPath, String sha1Chksum) throws Exception
     {
@@ -72,7 +70,7 @@ public class Utils
                     chkSum));
         }
 
-        return Utils.writeFile(targetFile, data);
+        return BuildUtils.writeFile(targetFile, data);
     }
 
     private static String getSHA1(byte[] data)
@@ -101,51 +99,6 @@ public class Utils
         }
 
         return b.toString();
-    }
-
-    public static Properties loadProperties(File file, Properties defaults)
-    {
-        FileInputStream inputStream = null;
-
-        try
-        {
-            inputStream = new FileInputStream(file);
-
-            Properties props = new Properties(defaults);
-            props.load(inputStream);
-
-            return props;
-        }
-        catch (IOException e)
-        {
-            throw new Error("Unable to load properties from file: " + file, e);
-        }
-        finally
-        {
-            try
-            {
-                if (inputStream != null)
-                    inputStream.close();
-            }
-            catch (IOException e)
-            {
-            }
-        }
-    }
-
-    public static String trim(String str, String trim)
-    {
-        int start = 0;
-
-        while (str.startsWith(trim, start))
-            start += trim.length();
-
-        str = str.substring(start);
-
-        while (str.endsWith(trim))
-            str = str.substring(0, str.length() - trim.length());
-
-        return str;
     }
 
     public static URLClassLoader newClassLoader(String classpath)
@@ -248,7 +201,7 @@ public class Utils
 
         System.arraycopy(classArgs, 0, cArr, idx, classArgs.length);
 
-        return Utils.exec(cArr);
+        return BuildUtils.exec(cArr);
     }
 
     public static int exec(String... command)
@@ -367,7 +320,7 @@ public class Utils
         }
     }
 
-    private Utils()
+    private BuildUtils()
     {
     }
 }

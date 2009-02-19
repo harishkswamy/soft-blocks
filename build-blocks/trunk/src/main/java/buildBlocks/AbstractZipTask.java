@@ -180,7 +180,7 @@ abstract class AbstractZipTask<T extends AbstractZipTask<?>>
 
                         if (file.isFile())
                         {
-                            byte[] data = Utils.readFile(file);
+                            byte[] data = BuildUtils.readFile(file);
                             CRC32 crc = new CRC32();
                             crc.update(data);
                             entry.setCrc(crc.getValue());

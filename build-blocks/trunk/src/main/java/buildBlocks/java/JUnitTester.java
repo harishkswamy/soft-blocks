@@ -1,6 +1,6 @@
 package buildBlocks.java;
 
-import static buildBlocks.Context.*;
+import static buildBlocks.BuildCtx.*;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import buildBlocks.FileTask;
-import buildBlocks.Utils;
+import buildBlocks.BuildUtils;
 
 /**
  * @author hkrishna
@@ -30,7 +30,7 @@ public class JUnitTester extends JavaTester
 
     public boolean run()
     {
-        return Utils.java(null, javaModule().testClasspath(), "org.junit.runner.JUnitCore", getTestClassNames()) == 0;
+        return BuildUtils.java(null, javaModule().testClasspath(), "org.junit.runner.JUnitCore", getTestClassNames()) == 0;
     }
 
     @SuppressWarnings("unchecked")
@@ -41,8 +41,8 @@ public class JUnitTester extends JavaTester
         String testBinPath = l.targetTestBinPath();
         List<File> classFiles = new FileTask(testBinPath).select(".*\\.class").getFiles(false);
 
-        URLClassLoader cl = Utils.newClassLoader(javaModule().testClasspath());
-        Class<? extends Annotation> testAnno = (Class<? extends Annotation>) Utils.loadClass(cl, "org.junit.Test");
+        URLClassLoader cl = BuildUtils.newClassLoader(javaModule().testClasspath());
+        Class<? extends Annotation> testAnno = (Class<? extends Annotation>) BuildUtils.loadClass(cl, "org.junit.Test");
         List<String> classNames = new ArrayList<String>();
 
         boolean printClPath = true;

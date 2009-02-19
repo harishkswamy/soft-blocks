@@ -1,6 +1,6 @@
 package buildBlocks;
 
-import static buildBlocks.Context.*;
+import static buildBlocks.BuildCtx.*;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -19,24 +19,9 @@ public class Artifact
 
     static
     {
-        _localRepository = ctx()
-            .property("local.repository.path", System.getProperty("user.home") + "/.m2/repository/");
+        _localRepository = ctx().localReposPath();
 
-        String[] urls = ctx().property("remote.repository.urls",
-            "http://repo1.maven.org/maven2/, http://mirrors.ibiblio.org/pub/mirrors/maven2/").split(",");
-
-        for (String url : urls)
-            _remoteRepositories.add(url);
-    }
-
-    public static void localRepository(String path)
-    {
-        _localRepository = path;
-    }
-
-    public static void remoteRepositories(String... urls)
-    {
-        _remoteRepositories.clear();
+        String[] urls = ctx().remoteReposUrls();
 
         for (String url : urls)
             _remoteRepositories.add(url);
@@ -131,7 +116,7 @@ public class Artifact
         {
             try
             {
-                Utils.download(url + path, _path, null);
+                BuildUtils.download(url + path, _path, null);
 
                 return _path;
             }

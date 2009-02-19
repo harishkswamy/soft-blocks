@@ -3,7 +3,7 @@ package buildBlocks.java;
 import java.util.ArrayList;
 import java.util.List;
 
-import buildBlocks.Context;
+import buildBlocks.BuildCtx;
 
 /**
  * @author hkrishna
@@ -25,7 +25,7 @@ public abstract class JavaCompiler
 
     public void compile(String sourcePath, String classPath, String targetPath)
     {
-        if (Context.ctx().traceOn())
+        if (BuildCtx.ctx().traceOn())
         {
             System.out.println("Source path: " + sourcePath);
             System.out.println("Class path: " + classPath);

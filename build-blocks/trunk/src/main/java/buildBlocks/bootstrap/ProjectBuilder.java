@@ -1,58 +1,132 @@
 package buildBlocks.bootstrap;
 
-import buildBlocks.BuildError;
+import java.net.URLClassLoader;
+
 import buildBlocks.Project;
-import buildBlocks.ProjectInfo;
-import buildBlocks.java.JavaLayout;
 
 /**
  * @author hkrishna
  */
-@ProjectInfo(group = "com.google.code.soft-blocks", version = "")
-public final class ProjectBuilder extends Project<JavaLayout>
+public final class ProjectBuilder extends Builder
 {
-    private BuilderCtx _builderCtx;
-    private Project<?> _project;
-
-    ProjectBuilder(String version, BuilderCtx builderCtx)
+    public static void main(String[] args)
     {
-        super(new JavaLayout());
-        version(version);
-
-        _builderCtx = builderCtx;
+        new ProjectBuilder(args).run();
     }
 
-    void build()
+    private String         _projectPath;
+    private String         _buildNum;
+    private boolean        _exportBuilder;
+    private String         _classpath;
+    private URLClassLoader _classLoader;
+    private Project<?>     _project;
+
+    private ProjectBuilder(String[] args)
     {
-        try
-        {
-            System.out.println();
-            System.out.println("Loading project...");
+        super(args);
 
-            // Load project
-            ProjectLoader loader = new ProjectLoader(this, _builderCtx);
-            _project = loader.loadProject(_builderCtx.exportProject());
+        init("", null);
+    }
 
-            System.out.println();
+    ProjectBuilder(String projectPath, String buildNum, String buildCmd)
+    {
+        super(buildCmd);
 
-            // Execute tasks
-            System.out.println(String.format("Building %s...", _project.name()));
-            System.out.println();
+        init(projectPath, buildNum);
+    }
 
-            long start = System.currentTimeMillis();
+    private void init(String projectPath, String buildNum)
+    {
+        _projectPath = projectPath;
+        _buildNum = buildNum;
+        _classpath = buildExtClasspath();
+        _classLoader = buildExtClassLoader();
+    }
 
-            _project.execute(_builderCtx.tasks());
+    protected boolean parse(String arg)
+    {
+        if ("-e".equals(arg))
+            return _exportBuilder = true;
 
-            long end = System.currentTimeMillis();
+        return false;
+    }
 
-            System.out.println(String.format("Project built successfully in %ss.", (end - start) / 1000.0));
-            System.out.println();
-        }
-        catch (BuildError be)
-        {
-            be.project(_project);
+    protected void build()
+    {
+        System.out.println();
+        System.out.println("Loading project...");
 
-            throw be;
-        }
+        loadProject();
+
+        System.out.println();
+
+        // Execute tasks
+        System.out.println(String.format("Building %s...", _project.name()));
+        System.out.println();
+
+        long start = System.currentTimeMillis();
+
+        _project.execute(buildParams());
+
+        long end = System.currentTimeMillis();
+
+        System.out.println(String.format("%s built successfully in %ss.", _project.name(), (end - start) / 1000.0));
+        System.out.println();
+    }
+
+    private Project<?> loadProject()
+    {
+        if (_project != null)
+            return _project;
+
+        return _project = new ProjectLoader(this).loadProject();
+    }
+
+    String projectPath()
+    {
+        return _projectPath;
+    }
+
+    String buildNum()
+    {
+        return _buildNum;
+    }
+
+    String classpath()
+    {
+        return _classpath;
+    }
+
+    URLClassLoader classLoader()
+    {
+        return _classLoader;
+    }
+
+    boolean exportBuilder()
+    {
+        return _exportBuilder;
+    }
+
+    void exportBuilder(String jarPath)
+    {
+        copyToLibExt(jarPath);
+    }
+
+    protected void printUsageHelp()
+    {
+        System.out.println("Usage:");
+        System.out.println();
+        System.out.println("    bbp <options> <tasks>");
+        System.out.println();
+        System.out.println("Options:");
+        System.out.println("    -D<name>=<value> : Set property");
+        System.out.println("    -e               : Export the project's builder as a Build-Blocks extension");
+        System.out.println("    -t               : Print trace messages");
+    }
+
+    @Override
+    protected void printProjectHelp()
+    {
+        loadProject().help();
     }
 }
