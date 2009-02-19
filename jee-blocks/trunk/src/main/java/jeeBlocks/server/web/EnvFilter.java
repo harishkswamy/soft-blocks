@@ -14,6 +14,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.MDC;
+
 /**
  * @author hkrishna
  */
@@ -39,9 +41,14 @@ public class EnvFilter implements Filter
     public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws IOException,
         ServletException
     {
+        final String remoteAddrKey = "RemoteAddr";
+
         try
         {
             _webContext.putInThread(HttpServletRequest.class, req);
+
+            // Store context for logs
+            MDC.put(remoteAddrKey, req.getRemoteAddr());
 
             chain.doFilter(req, resp);
         }
@@ -58,6 +65,9 @@ public class EnvFilter implements Filter
 
             // Cleaup the thread.
             _webContext.cleanupThread();
+
+            // Clear context stored for logs
+            MDC.remove(remoteAddrKey);
         }
     }
 
