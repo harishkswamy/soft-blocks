@@ -1,0 +1,49 @@
+# This file must be tab-free. 
+# Indentation between consecutive levels must be equidistant. 
+# In other words, the number of spaces used for an indent must 
+# be the same throughout this document.
+#
+repositories:
+  defaults!:
+    type: buildBlocks.repos.svn.Svn
+
+  soft-blocks: 
+    url: http://soft-blocks.googlecode.com/svn/
+    user: 
+    password: 
+
+  dcts:
+    url: http://soft-blocks.googlecode.com/svn/
+    user: 
+    password: 
+
+projects:
+  defaults!:
+    repos: soft-blocks
+    java-version: 1.5
+    repos-rev: 
+    build-cmd: -e lib:install
+
+  j-blocks: 
+    repos-path: j-blocks/trunk
+
+  jee-blocks:
+    repos-path: jee-blocks/trunk
+
+  gwt-blocks:
+    repos-path: gwt-blocks/trunk
+    deps: jee-blocks, j-blocks
+
+  # The following defaults will override the previous defaults
+  # for subsequent projects
+  #
+  defaults!:
+    repos: dcts
+    build-cmd: -e app: deploy
+
+  dcts-lib:
+    repos-path: common/lib/trunk
+    build-cmd: -e lib:install
+
+  informação:
+    repos-path:   informação/trunk
