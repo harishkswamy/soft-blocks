@@ -47,7 +47,7 @@ public class ProjectLoader extends Project<JavaLayout>
         layout().projectPath(projectPath + ctx().getFromThread("build.dir", "build"));
 
         if (!new File(layout().mainJavaPath()).exists())
-            throw new Error("Project not found.");
+            throw new Error("Project not found under " + _builder.projectPath());
 
         JavaModule<?> jMod = module(JavaModule.class);
 
