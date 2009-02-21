@@ -27,6 +27,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.List;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 /**
  * @author hkrishna
@@ -63,6 +64,13 @@ public class IOUtils
     public interface CsvHandler
     {
         void handleLine(List<String> tokens) throws Exception;
+
+        void endOfFile();
+    }
+
+    public interface SyamlHandler
+    {
+        void handleMapping(String key, String value, int level);
 
         void endOfFile();
     }
@@ -223,6 +231,57 @@ public class IOUtils
         });
     }
 
+    public static void readSyaml(URL url, final SyamlHandler handler)
+    {
+        readCharURL(url, new LineHandler()
+        {
+            private int     _col, _level, _spaces;
+            private Pattern _pattern = Pattern.compile(":\\s|:$");
+
+            public void handleLine(String line) throws Exception
+            {
+                String tLine = line.trim();
+
+                if (tLine.length() == 0 || tLine.startsWith("#"))
+                    return;
+
+                String[] entry = _pattern.split(tLine, 2);
+
+                String value;
+                value = entry.length == 1 || (value = entry[1].trim()).length() == 0 ? null : value;
+
+                handler.handleMapping(entry[0], value, level(line));
+            }
+
+            private int level(String line)
+            {
+                int col = 0, pCol = _col;
+
+                while (line.charAt(col) == ' ')
+                    col++;
+
+                _col = col;
+
+                if (_spaces == 0)
+                {
+                    if (col == 0)
+                        return 0;
+
+                    _spaces = col;
+                }
+
+                int dLevel = (col - pCol) / _spaces;
+
+                return _level += dLevel;
+            }
+
+            public void endOfFile()
+            {
+                handler.endOfFile();
+            }
+        });
+    }
+
     public static boolean copyFileIO(final File fromFile, File toFile)
     {
         try
@@ -259,7 +318,8 @@ public class IOUtils
         try
         {
             if (srcFile.isDirectory())
-                throw new IllegalArgumentException("Source path " + srcFile + " must represent a file and not a directory.");
+                throw new IllegalArgumentException("Source path " + srcFile
+                    + " must represent a file and not a directory.");
 
             if (destFile.exists())
             {
