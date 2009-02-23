@@ -64,7 +64,80 @@ public class WorkspaceBuilder extends Builder implements IOUtils.SyamlHandler
         buildProjects(projects);
     }
 
-    public void handleMapping(String key, String value, int level)
+    private List<List<ProjectModel>> parseWorkspace(File wsFile)
+    {
+        try
+        {
+            IOUtils.readSyaml(wsFile.toURL(), this);
+
+            return filterAndSortProjectsByDependency();
+        }
+        catch (Exception e)
+        {
+            throw AggregateException.with(e);
+        }
+    }
+
+    private List<List<ProjectModel>> filterAndSortProjectsByDependency()
+    {
+        List<List<ProjectModel>> wsProjects = new ArrayList<List<ProjectModel>>();
+
+        for (ProjectModel prj : _projectMap.values())
+        {
+            if (!needToBuild(prj))
+                continue;
+
+            int hops = maxHopsToRoot(prj);
+
+            while (hops >= wsProjects.size())
+                wsProjects.add(new ArrayList<ProjectModel>());
+
+            List<ProjectModel> hopList = wsProjects.get(hops);
+
+            hopList.add(prj);
+        }
+
+        return wsProjects;
+    }
+
+    private boolean needToBuild(ProjectModel pc)
+    {
+        if (buildParams().length == 1 || pc.needToBuild())
+            return true;
+
+        for (int i = 1; i < buildParams().length; i++)
+        {
+            ProjectModel prj = _projectMap.get(buildParams()[i]);
+
+            if (prj == pc || prj.isDep(pc))
+                return pc.needToBuild(true);
+        }
+
+        return false;
+    }
+
+    private int maxHopsToRoot(ProjectModel pc)
+    {
+        if (pc.deps() == null || pc.deps().length == 0)
+            return 0;
+
+        if (pc.maxHopsToRoot() > 0)
+            return pc.maxHopsToRoot();
+
+        pc.maxHopsToRoot(1);
+
+        for (ProjectModel dep : pc.deps())
+        {
+            int depMaxHops = maxHopsToRoot(dep) + 1;
+
+            if (pc.maxHopsToRoot() < depMaxHops)
+                pc.maxHopsToRoot(depMaxHops);
+        }
+
+        return pc.maxHopsToRoot();
+    }
+
+    public void handleMapping(String key, String value, int level, int line)
     {
         _key = key;
         _value = value;
@@ -76,7 +149,10 @@ public class WorkspaceBuilder extends Builder implements IOUtils.SyamlHandler
         else if (level == 2)
             handleLevel2();
         else
-            throw new ApplicationException(String.format("Invalid level at %s, %s, %s", key, value, level));
+        {
+            String fmt = "Invalid level: %s at line: %s, key: %s, value: %s. Make sure the line is indented properly using only spaces (no tabs).";
+            throw new ApplicationException(String.format(fmt, level, line, key, value));
+        }
     }
 
     private void handleLevel2()
@@ -222,79 +298,6 @@ public class WorkspaceBuilder extends Builder implements IOUtils.SyamlHandler
         {
             coWorkers.shutdown();
         }
-    }
-
-    private List<List<ProjectModel>> parseWorkspace(File wsFile)
-    {
-        try
-        {
-            IOUtils.readSyaml(wsFile.toURL(), this);
-
-            return filterAndSortProjectsByDependency();
-        }
-        catch (Exception e)
-        {
-            throw AggregateException.with(e);
-        }
-    }
-
-    private List<List<ProjectModel>> filterAndSortProjectsByDependency()
-    {
-        List<List<ProjectModel>> wsProjects = new ArrayList<List<ProjectModel>>();
-
-        for (ProjectModel prj : _projectMap.values())
-        {
-            if (!needToBuild(prj))
-                continue;
-
-            int hops = maxHopsToRoot(prj);
-
-            while (hops >= wsProjects.size())
-                wsProjects.add(new ArrayList<ProjectModel>());
-
-            List<ProjectModel> hopList = wsProjects.get(hops);
-
-            hopList.add(prj);
-        }
-
-        return wsProjects;
-    }
-
-    private boolean needToBuild(ProjectModel pc)
-    {
-        if (buildParams().length == 1 || pc.needToBuild())
-            return true;
-
-        for (int i = 1; i < buildParams().length; i++)
-        {
-            ProjectModel prj = _projectMap.get(buildParams()[i]);
-
-            if (prj == pc || prj.isDep(pc))
-                return pc.needToBuild(true);
-        }
-
-        return false;
-    }
-
-    private int maxHopsToRoot(ProjectModel pc)
-    {
-        if (pc.deps() == null || pc.deps().length == 0)
-            return 0;
-
-        if (pc.maxHopsToRoot() > 0)
-            return pc.maxHopsToRoot();
-
-        pc.maxHopsToRoot(1);
-
-        for (ProjectModel dep : pc.deps())
-        {
-            int depMaxHops = maxHopsToRoot(dep) + 1;
-
-            if (pc.maxHopsToRoot() < depMaxHops)
-                pc.maxHopsToRoot(depMaxHops);
-        }
-
-        return pc.maxHopsToRoot();
     }
 
     protected void printUsageHelp()
