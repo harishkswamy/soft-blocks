@@ -70,7 +70,7 @@ public class IOUtils
 
     public interface SyamlHandler
     {
-        void handleMapping(String key, String value, int level);
+        void handleMapping(String key, String value, int level, int line);
 
         void endOfFile();
     }
@@ -235,11 +235,13 @@ public class IOUtils
     {
         readCharURL(url, new LineHandler()
         {
-            private int     _col, _level, _spaces;
+            private int     _line, _col, _level, _spaces;
             private Pattern _pattern = Pattern.compile(":\\s|:$");
 
             public void handleLine(String line) throws Exception
             {
+                _line++;
+
                 String tLine = line.trim();
 
                 if (tLine.length() == 0 || tLine.startsWith("#"))
@@ -250,7 +252,7 @@ public class IOUtils
                 String value;
                 value = entry.length == 1 || (value = entry[1].trim()).length() == 0 ? null : value;
 
-                handler.handleMapping(entry[0], value, level(line));
+                handler.handleMapping(entry[0], value, level(line), _line);
             }
 
             private int level(String line)

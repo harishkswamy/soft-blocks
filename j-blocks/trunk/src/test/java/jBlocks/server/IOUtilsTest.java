@@ -104,7 +104,7 @@ public class IOUtilsTest
             private Object            _entity;
             private String            _key, _value;
 
-            public void handleMapping(String key, String value, int level)
+            public void handleMapping(String key, String value, int level, int line)
             {
                 _key = key;
                 _value = value;
