@@ -139,11 +139,15 @@ public abstract class AbstractSchema
     {
         SqlSession session = inNewSession ? _dataManager.newSession() : session();
 
+        boolean committed = false;
+
         try
         {
             session.startTransaction();
             V result = task.call();
             session.commit();
+
+            committed = true;
 
             return result;
         }
@@ -167,7 +171,8 @@ public abstract class AbstractSchema
                 else
                     _dataManager.discardThreadSession();
 
-                transact(task, 2, inNewSession);
+                if (!committed)
+                    transact(task, 2, inNewSession);
             }
             finally
             {
