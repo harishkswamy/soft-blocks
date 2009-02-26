@@ -139,6 +139,7 @@ public abstract class AbstractSchema
     {
         SqlSession session = inNewSession ? _dataManager.newSession() : session();
 
+        Exception te = null;
         boolean committed = false;
 
         try
@@ -153,6 +154,7 @@ public abstract class AbstractSchema
         }
         catch (Exception e)
         {
+            te = e;
             throw AggregateException.with(e, "DB transaction failed.");
         }
         finally
@@ -164,15 +166,24 @@ public abstract class AbstractSchema
             catch (Exception e)
             {
                 if (attempt > 1)
-                    throw new Error("DB connection error. The database or the network is possibly down.");
+                    throw AggregateException.with(
+                        "DB transaction error. The database or the network is possibly down.", te, e);
 
                 if (inNewSession)
                     session.close();
                 else
                     _dataManager.discardThreadSession();
 
-                if (!committed)
-                    transact(task, 2, inNewSession);
+                try
+                {
+                    if (!committed)
+                        transact(task, 2, inNewSession);
+                }
+                catch (Exception e2)
+                {
+                    throw new Error(AggregateException.with("DB transaction failed after two attempts.", e, e2)
+                        .getLocalizedMessage(), te);
+                }
             }
             finally
             {
