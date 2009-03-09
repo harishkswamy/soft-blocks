@@ -35,8 +35,14 @@ public interface GwtBlocksMessages extends Messages
     @DefaultMessage("Message")
     String message();
 
+    @DefaultMessage("Confirm")
+    String confirm();
+
     @DefaultMessage("OK")
     String ok();
+
+    @DefaultMessage("Cancel")
+    String cancel();
 
     @DefaultMessage("A new version of the payslip viewer is available.<br /><br />Please right-click and select \"Refresh\" in your browser to view your payslip.")
     String incompatibleRemoteServiceException();

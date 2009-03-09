@@ -6,6 +6,7 @@ import com.google.gwt.user.client.Command;
 import com.google.gwt.user.client.ui.Button;
 import com.google.gwt.user.client.ui.ClickListener;
 import com.google.gwt.user.client.ui.DialogBox;
+import com.google.gwt.user.client.ui.FlexTable;
 import com.google.gwt.user.client.ui.HTML;
 import com.google.gwt.user.client.ui.Image;
 import com.google.gwt.user.client.ui.SimplePanel;
@@ -28,34 +29,41 @@ public class MessageBox extends DialogBox
 
     public static void info(String msg)
     {
-        _msgBox.showBox(msg, INFO_ICON_URL, INFO_ICON_STYLE);
+        _msgBox.showBox(msg, INFO_ICON_URL, INFO_ICON_STYLE, false);
     }
 
     public static void alert(String msg)
     {
-        _msgBox.showBox(msg, WARNING_ICON_URL, WARNING_ICON_STYLE);
+        _msgBox.showBox(msg, WARNING_ICON_URL, WARNING_ICON_STYLE, false);
     }
 
     public static void alert(String msg, Command command)
     {
         _msgBox._command = command;
-        _msgBox.showBox(msg, WARNING_ICON_URL, WARNING_ICON_STYLE);
+        _msgBox.showBox(msg, WARNING_ICON_URL, WARNING_ICON_STYLE, false);
     }
 
     public static void error(String msg)
     {
-        _msgBox.showBox(msg, ERROR_ICON_URL, ERROR_ICON_STYLE);
+        _msgBox.showBox(msg, ERROR_ICON_URL, ERROR_ICON_STYLE, false);
     }
 
     public static void error(String msg, Command command)
     {
         _msgBox._command = command;
-        _msgBox.showBox(msg, ERROR_ICON_URL, ERROR_ICON_STYLE);
+        _msgBox.showBox(msg, ERROR_ICON_URL, ERROR_ICON_STYLE, false);
+    }
+
+    public static void confirm(String msg, Command command)
+    {
+        _msgBox._command = command;
+        _msgBox.showBox(msg, WARNING_ICON_URL, WARNING_ICON_STYLE, true);
     }
 
     private SimplePanel _iconContainer;
     private Image       _icon;
     private HTML        _msg;
+    private Button      _cancelBtn;
     private Command     _command;
 
     private MessageBox()
@@ -73,7 +81,7 @@ public class MessageBox extends DialogBox
             public void onClick(Widget sender)
             {
                 hide();
-                
+
                 if (_command != null)
                 {
                     _command.execute();
@@ -81,7 +89,19 @@ public class MessageBox extends DialogBox
                 }
             }
         });
-        okBtn.getElement().getStyle().setPropertyPx("margin", 10);
+
+        _cancelBtn = new Button(GwtBlocksMessages.pick.cancel(), new ClickListener()
+        {
+            public void onClick(Widget sender)
+            {
+                hide();
+                _command = null;
+            }
+        });
+
+        FlexTableBuilder b = new FlexTableBuilder();
+        FlexTable btnTable = b.set(okBtn).setNbSp(1).set(_cancelBtn).getTable();
+        btnTable.getElement().getStyle().setProperty("margin", "10px 0px");
 
         _icon = new Image();
         _icon.setStylePrimaryName("gbk-png");
@@ -91,17 +111,13 @@ public class MessageBox extends DialogBox
         _iconContainer.setSize("48px", "48px");
         _iconContainer.setWidget(_icon);
 
-        FlexTableBuilder b = new FlexTableBuilder();
-        b.widthC("48px").set(_iconContainer).set(_msg).nextRow();
-        b.colSpan(2).centerC().set(okBtn).nextRow();
+        b.newTable().widthC("48px").set(_iconContainer).set(_msg).nextRow();
+        b.colSpan(2).centerC().set(btnTable).nextRow();
 
-        SimplePanel captionPanel = new SimplePanel();
-        captionPanel.setWidget(new HTML(GwtBlocksMessages.pick.message(), false));
-        setHTML(captionPanel.getElement().getString());
         setWidget(b.getTable());
     }
 
-    private void showBox(String msg, String iconUrl, String iconStyle)
+    private void showBox(String msg, String iconUrl, String iconStyle, boolean confirm)
     {
         resetStyles();
 
@@ -109,6 +125,17 @@ public class MessageBox extends DialogBox
 
         _icon.setUrl(iconUrl);
         _msg.setHTML(msg);
+
+        if (confirm)
+        {
+            setHTML(GwtBlocksMessages.pick.confirm());
+            _cancelBtn.setVisible(true);
+        }
+        else
+        {
+            setHTML(GwtBlocksMessages.pick.message());
+            _cancelBtn.setVisible(false);
+        }
 
         center();
     }
