@@ -14,7 +14,6 @@
 
 package jBlocks.server.sql;
 
-import jBlocks.server.AggregateException;
 import jBlocks.server.IOUtils;
 
 import java.net.URL;
@@ -120,7 +119,7 @@ public abstract class AbstractSchema
      */
     public <V> V transact(Callable<V> task)
     {
-        return transact(task, 1, false);
+        return _dataManager.transact(task);
     }
 
     /**
@@ -132,64 +131,6 @@ public abstract class AbstractSchema
      */
     public <V> V transactInNewSession(Callable<V> task)
     {
-        return transact(task, 1, true);
-    }
-
-    private <V> V transact(Callable<V> task, int attempt, boolean inNewSession)
-    {
-        SqlSession session = inNewSession ? _dataManager.newSession() : session();
-
-        Exception te = null;
-        boolean committed = false;
-
-        try
-        {
-            session.startTransaction();
-            V result = task.call();
-            session.commit();
-
-            committed = true;
-
-            return result;
-        }
-        catch (Exception e)
-        {
-            te = e;
-            throw AggregateException.with(e, "DB transaction failed.");
-        }
-        finally
-        {
-            try
-            {
-                session.endTransaction();
-            }
-            catch (Exception e)
-            {
-                if (attempt > 1)
-                    throw AggregateException.with(
-                        "DB transaction error. The database or the network is possibly down.", te, e);
-
-                if (inNewSession)
-                    session.close();
-                else
-                    _dataManager.discardThreadSession();
-
-                try
-                {
-                    if (!committed)
-                        transact(task, 2, inNewSession);
-                }
-                catch (Exception e2)
-                {
-                    throw new Error(AggregateException.with("DB transaction failed after two attempts.", e, e2)
-                        .getLocalizedMessage(), te);
-                }
-            }
-            finally
-            {
-                if (inNewSession)
-                    session.close();
-            }
-        }
+        return _dataManager.transactInNewSession(task);
     }
 }

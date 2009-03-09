@@ -19,6 +19,7 @@ import jBlocks.server.AppContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.concurrent.Callable;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
@@ -130,5 +131,87 @@ public class DataManager
     public SqlSession newSession()
     {
         return new SqlSession(getConnection());
+    }
+
+    /**
+     * This method will run the provided task as a unit of work within a DB transaction. This method will try to recover
+     * from broken DB connections and throws an {@link Error} when the recovery fails.
+     * 
+     * @throws Error
+     *             when the DB connection is broken and recovery attempts fail.
+     */
+    public <V> V transact(Callable<V> task)
+    {
+        return transact(task, 1, false);
+    }
+
+    /**
+     * This method is exactly the same as {@link #transact(Runnable)} except this method will run the transaction in a
+     * new session.
+     * 
+     * @throws Error
+     *             when the DB connection is broken and recovery attempts fail.
+     */
+    public <V> V transactInNewSession(Callable<V> task)
+    {
+        return transact(task, 1, true);
+    }
+
+    private <V> V transact(Callable<V> task, int attempt, boolean inNewSession)
+    {
+        SqlSession session = inNewSession ? newSession() : threadSession();
+
+        Exception te = null;
+        boolean committed = false;
+
+        try
+        {
+            session.startTransaction();
+            V result = task.call();
+            session.commit();
+
+            committed = true;
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            te = e;
+            throw AggregateException.with(e, "DB transaction failed.");
+        }
+        finally
+        {
+            try
+            {
+                session.endTransaction();
+            }
+            catch (Exception e)
+            {
+                if (attempt > 1)
+                    throw AggregateException.with(
+                        "DB transaction error. The database or the network is possibly down.", te, e);
+
+                if (inNewSession)
+                    session.close();
+                else
+                    discardThreadSession();
+
+                try
+                {
+                    if (!committed)
+                        transact(task, 2, inNewSession);
+                }
+                catch (Exception e2)
+                {
+                    throw new Error(AggregateException.with("DB transaction failed after two attempts.", e, e2)
+                        .getLocalizedMessage(), te);
+                }
+            }
+            finally
+            {
+                if (inNewSession)
+                    session.close();
+            }
+        }
     }
 }
