@@ -14,13 +14,13 @@
 
 package jBlocks.server.sql;
 
+import jBlocks.server.AggregateException;
 import jBlocks.server.IOUtils;
 
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.concurrent.Callable;
 
 /**
  * Base class to manage database access to a particular schema.
@@ -30,12 +30,15 @@ import java.util.concurrent.Callable;
  * 
  * @author hkrishna
  */
-public abstract class AbstractSchema
+public abstract class SqlSchema
 {
     private DataManager          _dataManager;
     private Map<String, SqlStmt> _stmts;
 
-    protected AbstractSchema(DataManager dataManager, String sqlPropsFileName)
+    private boolean              _concurrentSession;
+    private SqlSession           _session;
+
+    protected SqlSchema(DataManager dataManager, String sqlPropsFileName)
     {
         if (dataManager == null)
             throw new IllegalArgumentException("DataManager must be provided.");
@@ -52,6 +55,15 @@ public abstract class AbstractSchema
         _stmts = new SqlMapParser().parse(sqlProps);
     }
 
+    protected SqlSchema(SqlSchema schema)
+    {
+        _dataManager = schema._dataManager;
+        _stmts = schema._stmts;
+        _concurrentSession = true;
+    }
+
+    protected abstract SqlSchema newSession();
+
     protected DataManager dataManager()
     {
         return _dataManager;
@@ -62,12 +74,25 @@ public abstract class AbstractSchema
         return _stmts.get(stmtId);
     }
 
-    /**
-     * @return The {@link SqlSession} for the current thread.
-     */
     protected SqlSession session()
     {
+        if (_concurrentSession)
+        {
+            if (_session == null)
+                _session = _dataManager.newSession();
+
+            return _session;
+        }
+
         return _dataManager.threadSession();
+    }
+
+    protected void discardSession()
+    {
+        if (_session == null)
+            _dataManager.discardThreadSession();
+        else
+            _session.close();
     }
 
     protected void setFetchSize(String stmtKey, int size)
@@ -95,17 +120,17 @@ public abstract class AbstractSchema
         return session().select(stmt(stmtId), paramModel, callback);
     }
 
-    protected SqlSession addBatch(String stmtId, Object param)
+    public SqlSession addBatch(String stmtId, Object param)
     {
         return session().addBatch(stmt(stmtId), param);
     }
 
-    protected int[] executeBatch(String stmtId)
+    public int[] executeBatch(String stmtId)
     {
         return session().executeBatch(stmt(stmtId));
     }
 
-    protected int executeUpdate(String stmtId, Object param)
+    public int executeUpdate(String stmtId, Object param)
     {
         return session().executeUpdate(stmt(stmtId), param);
     }
@@ -117,20 +142,77 @@ public abstract class AbstractSchema
      * @throws Error
      *             when the DB connection is broken and recovery attempts fail.
      */
-    public <V> V transact(Callable<V> task)
+    public <V> V transact(SqlTask<V> task)
     {
-        return _dataManager.transact(task);
+        return transact(task, 1);
     }
 
     /**
-     * This method is exactly the same as {@link #transact(Runnable)} except this method will run the transaction in a
-     * new session.
+     * This method is exactly the same as {@link #transact(Runnable)} except this method will run the transaction and
+     * close the session at the end.
      * 
      * @throws Error
      *             when the DB connection is broken and recovery attempts fail.
      */
-    public <V> V transactInNewSession(Callable<V> task)
+    public <V> V transactAndEndSession(SqlTask<V> task)
     {
-        return _dataManager.transactInNewSession(task);
+        try
+        {
+            return transact(task, 1);
+        }
+        finally
+        {
+            session().close();
+        }
+    }
+
+    private <V> V transact(SqlTask<V> task, int attempt)
+    {
+        SqlSession session = session();
+
+        Exception te = null;
+        boolean committed = false;
+
+        try
+        {
+            session.startTransaction();
+            V result = task.execute();
+            session.commit();
+
+            committed = true;
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            te = e;
+            throw AggregateException.with(e, "DB transaction failed.");
+        }
+        finally
+        {
+            try
+            {
+                session.endTransaction();
+            }
+            catch (Exception e)
+            {
+                if (attempt > 1)
+                    throw AggregateException.with(
+                        "DB transaction error. The database or the network is possibly down.", te, e);
+
+                discardSession();
+
+                try
+                {
+                    if (!committed)
+                        transact(task, 2);
+                }
+                catch (Exception e2)
+                {
+                    throw new Error(AggregateException.with("DB transaction failed after two attempts.", e, e2)
+                        .getLocalizedMessage(), te);
+                }
+            }
+        }
     }
 }

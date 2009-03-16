@@ -114,19 +114,17 @@ public class SimpleDataSource implements DataSource
     {
         Connection conn = null;
 
-        while (conn == null && _connPool.size() > 0)
+        while ((conn = _connPool.poll()) != null)
         {
-            conn = _connPool.poll();
-
             try
             {
                 conn.setAutoCommit(false);
                 conn.rollback();
+                break;
             }
             catch (SQLException e)
             {
                 _logger.info("Possible stale connection, trashing " + conn, e);
-                conn = null;
             }
         }
 

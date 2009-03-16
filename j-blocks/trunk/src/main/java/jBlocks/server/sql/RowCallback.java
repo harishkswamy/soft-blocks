@@ -33,7 +33,7 @@ package jBlocks.server.sql;
  * assuming the callback is of type <code>RowCallback&lt;Family&gt;</code>.
  * 
  * @author hkrishna
- * @see AbstractSchema
+ * @see SqlSchema
  */
 public interface RowCallback<T>
 {
