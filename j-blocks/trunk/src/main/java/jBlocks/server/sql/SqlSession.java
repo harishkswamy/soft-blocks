@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * @author hkrishna
  */
-public class SqlSession
+class SqlSession
 {
     private class SqlTrn
     {
@@ -45,8 +45,7 @@ public class SqlSession
             }
             catch (Exception e)
             {
-                throw AggregateException.with(e, "Unable to add batch " + sqlStmt + ", Parameter: "
-                    + param);
+                throw AggregateException.with(e, "Unable to add batch " + sqlStmt + ", Parameter: " + param);
             }
         }
 
@@ -149,7 +148,12 @@ public class SqlSession
         _conn = conn;
     }
 
-    public SqlSession startTransaction()
+    boolean isInTransaction()
+    {
+        return _trn != null;
+    }
+
+    SqlSession startTransaction()
     {
         if (_trn != null)
             throw new IllegalStateException("This session is already in a transaction.");
@@ -159,7 +163,7 @@ public class SqlSession
         return this;
     }
 
-    public PreparedStatement getStatement(SqlStmt sqlStmt, Object param)
+    PreparedStatement getStatement(SqlStmt sqlStmt, Object param)
     {
         try
         {
@@ -179,7 +183,7 @@ public class SqlSession
         }
     }
 
-    public int selectInt(SqlStmt sqlStmt, Object paramModel)
+    int selectInt(SqlStmt sqlStmt, Object paramModel)
     {
         List<Integer> result = executeQuery(sqlStmt, paramModel, new ResultHandler<Integer>()
         {
@@ -202,23 +206,23 @@ public class SqlSession
     /**
      * @return The object or null if no row was selected.
      */
-    public <T> T selectOne(SqlStmt sqlStmt, Object paramModel)
+    <T> T selectOne(SqlStmt sqlStmt, Object paramModel)
     {
         List<T> list = select(sqlStmt, paramModel);
         return list.size() > 0 ? list.get(0) : null;
     }
 
-    public <T> List<T> select(SqlStmt sqlStmt, Object paramModel)
+    <T> List<T> select(SqlStmt sqlStmt, Object paramModel)
     {
         return select(sqlStmt, paramModel, null);
     }
 
-    public <T> List<T> select(SqlStmt sqlStmt, Object paramModel, RowCallback<T> callback)
+    <T> List<T> select(SqlStmt sqlStmt, Object paramModel, RowCallback<T> callback)
     {
         return executeQuery(sqlStmt, paramModel, new ResultBuilder<T>(sqlStmt, callback));
     }
 
-    public <T> List<T> executeQuery(SqlStmt sqlStmt, Object param, ResultHandler<T> handler)
+    <T> List<T> executeQuery(SqlStmt sqlStmt, Object param, ResultHandler<T> handler)
     {
         ResultSet result = null;
 
@@ -240,27 +244,27 @@ public class SqlSession
         }
     }
 
-    public SqlSession addBatch(SqlStmt sqlStmt, Object param)
+    SqlSession addBatch(SqlStmt sqlStmt, Object param)
     {
         return trn().addBatch(sqlStmt, param);
     }
 
-    public int[] executeBatch(SqlStmt sqlStmt)
+    int[] executeBatch(SqlStmt sqlStmt)
     {
         return trn().executeBatch(sqlStmt);
     }
 
-    public int executeUpdate(SqlStmt sqlStmt, Object param)
+    int executeUpdate(SqlStmt sqlStmt, Object param)
     {
         return trn().executeUpdate(sqlStmt, param);
     }
 
-    public SqlSession commit()
+    SqlSession commit()
     {
         return trn().commit();
     }
 
-    public SqlSession endTransaction()
+    SqlSession endTransaction()
     {
         try
         {
@@ -272,7 +276,7 @@ public class SqlSession
         }
     }
 
-    public void close()
+    void close()
     {
         closeStatements();
         closeConnection();

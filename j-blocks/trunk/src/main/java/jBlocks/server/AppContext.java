@@ -108,19 +108,13 @@ public class AppContext
         return key.cast(_ctx.remove(new Key(key, classifier)));
     }
 
-    public void put(Class<?> key, Object value)
+    public <T> void put(Class<T> key, T value)
     {
-        if (!key.isAssignableFrom(value.getClass()))
-            throw new IllegalArgumentException("Value must be assignable to the key class");
-
         _ctx.put(key, value);
     }
 
-    public void put(Class<?> key, String classifier, Object value)
+    public <T> void put(Class<T> key, String classifier, T value)
     {
-        if (!key.isAssignableFrom(value.getClass()))
-            throw new IllegalArgumentException("Value must be assignable to the key class");
-
         _ctx.put(new Key(key, classifier), value);
     }
 
@@ -159,21 +153,15 @@ public class AppContext
     }
 
     @SuppressWarnings("unchecked")
-    public void putInThread(Class<?> key, Object value)
+    public <T> void putInThread(Class<T> key, T value)
     {
-        if (!key.isAssignableFrom(value.getClass()))
-            throw new IllegalArgumentException("Value must be assignable to the key class");
-
         ThreadLocal<Map<Object, Object>> threadLocal = get(ThreadLocal.class);
         threadLocal.get().put(key, value);
     }
 
     @SuppressWarnings("unchecked")
-    public void putInThread(Class<?> key, String classifier, Object value)
+    public <T> void putInThread(Class<T> key, String classifier, T value)
     {
-        if (!key.isAssignableFrom(value.getClass()))
-            throw new IllegalArgumentException("Value must be assignable to the key class");
-
         ThreadLocal<Map<Object, Object>> threadLocal = get(ThreadLocal.class);
         threadLocal.get().put(new Key(key, classifier), value);
     }

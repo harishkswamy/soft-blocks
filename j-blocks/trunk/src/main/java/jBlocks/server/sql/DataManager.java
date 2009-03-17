@@ -15,7 +15,6 @@
 package jBlocks.server.sql;
 
 import jBlocks.server.AggregateException;
-import jBlocks.server.AppContext;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -25,44 +24,25 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-public class DataManager
+class DataManager
 {
-    private AppContext _ctx;
     private String     _dbId;
     private String     _jndiName;
     private DataSource _dataSource;
 
-    public DataManager(AppContext ctx, String jndiName, String dbId)
+    DataManager(String jndiName, String dbId)
     {
-        this(ctx, dbId);
-
+        _dbId = dbId;
         _jndiName = jndiName;
     }
 
-    public DataManager(AppContext ctx, DataSource dataSource, String dbId)
+    DataManager(DataSource dataSource, String dbId)
     {
-        this(ctx, dbId);
-
+        _dbId = dbId;
         _dataSource = dataSource;
     }
 
-    private DataManager(AppContext ctx, String dbId)
-    {
-        if (ctx == null)
-            throw new IllegalArgumentException("AppContext must be provided.");
-
-        ctx.put(DataManager.class, this);
-
-        _ctx = ctx;
-        _dbId = dbId;
-    }
-
-    public DataSource getDataSource()
-    {
-        return _dataSource;
-    }
-
-    public Connection getConnection()
+    Connection getConnection()
     {
         if (_dataSource == null)
             loadDataSource();
@@ -104,31 +84,8 @@ public class DataManager
         }
     }
 
-    public String dbId()
+    String dbId()
     {
         return _dbId;
-    }
-
-    public SqlSession threadSession()
-    {
-        SqlSession session = _ctx.getFromThread(SqlSession.class);
-
-        if (session == null)
-            _ctx.putInThread(SqlSession.class, session = newSession());
-
-        return session;
-    }
-
-    public void discardThreadSession()
-    {
-        SqlSession session = _ctx.removeFromThread(SqlSession.class);
-
-        if (session != null)
-            session.close();
-    }
-
-    public SqlSession newSession()
-    {
-        return new SqlSession(getConnection());
     }
 }
