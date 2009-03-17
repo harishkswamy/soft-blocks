@@ -29,6 +29,10 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
+
 /**
  * @author hkrishna
  */
@@ -410,5 +414,19 @@ public class IOUtils
     public static Properties loadProperties(URL url)
     {
         return loadProperties(url, null);
+    }
+
+    public static String askPassword(String message)
+    {
+        JLabel label = new JLabel(message);
+        JPasswordField pwd = new JPasswordField();
+
+        int action = JOptionPane.showConfirmDialog(null, new Object[] { label, pwd }, "Password ?",
+            JOptionPane.OK_CANCEL_OPTION);
+
+        if (action == JOptionPane.OK_OPTION)
+            return new String(pwd.getPassword());
+
+        return null;
     }
 }

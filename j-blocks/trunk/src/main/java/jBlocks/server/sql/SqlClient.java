@@ -37,17 +37,11 @@ public class SqlClient
     private Map<String, SqlStmt>          _stmts;
     private ThreadLocal<List<SqlSession>> _threadSessions;
 
-    /**
-     * Creates a new client and registers itself in the context against the key - SqlClient.class.
-     */
     public SqlClient(String jndiName, String dbId)
     {
         this(new DataManager(jndiName, dbId));
     }
 
-    /**
-     * Creates a new client and registers itself in the context against the key - SqlClient.class.
-     */
     public SqlClient(DataSource dataSource, String dbId)
     {
         this(new DataManager(dataSource, dbId));
