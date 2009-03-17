@@ -14,6 +14,8 @@
 
 package jBlocks.server;
 
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
@@ -419,14 +422,38 @@ public class IOUtils
     public static String askPassword(String message)
     {
         JLabel label = new JLabel(message);
-        JPasswordField pwd = new JPasswordField();
+        final JPasswordField pwd = new JPasswordField();
 
-        int action = JOptionPane.showConfirmDialog(null, new Object[] { label, pwd }, "Password ?",
+        JOptionPane jop = new JOptionPane(new Object[] { label, pwd }, JOptionPane.QUESTION_MESSAGE,
             JOptionPane.OK_CANCEL_OPTION);
 
-        if (action == JOptionPane.OK_OPTION)
-            return new String(pwd.getPassword());
+        JDialog dialog = jop.createDialog(null, "Password");
 
-        return null;
+        dialog.addComponentListener(new ComponentAdapter()
+        {
+            @Override
+            public void componentShown(ComponentEvent e)
+            {
+                pwd.requestFocusInWindow();
+            }
+        });
+
+        dialog.setVisible(true);
+        dialog.dispose();
+
+        int result = (Integer) jop.getValue();
+
+        char[] password = null;
+
+        if (result == JOptionPane.OK_OPTION)
+            password = pwd.getPassword();
+
+        if (password == null)
+            return null;
+
+        for (int i = 0; i < password.length; i++)
+            password[i] = 0;
+
+        return new String(password);
     }
 }
