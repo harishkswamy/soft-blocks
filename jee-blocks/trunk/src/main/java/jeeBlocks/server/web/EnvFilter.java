@@ -1,8 +1,7 @@
 package jeeBlocks.server.web;
 
 import jBlocks.server.AppContext;
-import jBlocks.server.sql.DataManager;
-import jBlocks.server.sql.SqlSession;
+import jBlocks.server.sql.SqlClient;
 
 import java.io.IOException;
 
@@ -32,8 +31,7 @@ public class EnvFilter implements Filter
         String dataSourceId = filterConfig.getInitParameter("data-source-id");
         String jdbcJndiName = filterConfig.getInitParameter("data-source-jndi-name");
 
-        // This will register the DataManager in the context
-        new DataManager(_webContext, jdbcJndiName, dataSourceId);
+        _webContext.put(SqlClient.class, new SqlClient(jdbcJndiName, dataSourceId));
 
         filterConfig.getServletContext().setAttribute(AppContext.KEY, _webContext);
     }
@@ -45,7 +43,7 @@ public class EnvFilter implements Filter
 
         try
         {
-            _webContext.putInThread(HttpServletRequest.class, req);
+            _webContext.putInThread(HttpServletRequest.class, (HttpServletRequest) req);
 
             // Store context for logs
             MDC.put(remoteAddrKey, req.getRemoteAddr());
@@ -57,11 +55,8 @@ public class EnvFilter implements Filter
             // Update the session to replicate it in a cluster.
             _webContext.applySession();
 
-            // End context SQL session, if exists
-            SqlSession sqlSession = _webContext.getFromThread(SqlSession.class);
-
-            if (sqlSession != null)
-                sqlSession.close();
+            // End SQL session for the request
+            _webContext.get(SqlClient.class).endSession();
 
             // Cleaup the thread.
             _webContext.cleanupThread();
