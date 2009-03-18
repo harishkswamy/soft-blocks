@@ -421,10 +421,10 @@ public class IOUtils
 
     public static String askPassword(String message)
     {
-        JLabel label = new JLabel(message);
-        final JPasswordField pwd = new JPasswordField();
+        JLabel wLabel = new JLabel(message);
+        final JPasswordField wPwd = new JPasswordField();
 
-        JOptionPane jop = new JOptionPane(new Object[] { label, pwd }, JOptionPane.QUESTION_MESSAGE,
+        JOptionPane jop = new JOptionPane(new Object[] { wLabel, wPwd }, JOptionPane.QUESTION_MESSAGE,
             JOptionPane.OK_CANCEL_OPTION);
 
         JDialog dialog = jop.createDialog(null, "Password");
@@ -434,7 +434,7 @@ public class IOUtils
             @Override
             public void componentShown(ComponentEvent e)
             {
-                pwd.requestFocusInWindow();
+                wPwd.requestFocusInWindow();
             }
         });
 
@@ -443,17 +443,19 @@ public class IOUtils
 
         int result = (Integer) jop.getValue();
 
-        char[] password = null;
+        char[] pwd = null;
 
         if (result == JOptionPane.OK_OPTION)
-            password = pwd.getPassword();
+            pwd = wPwd.getPassword();
 
-        if (password == null)
+        if (pwd == null)
             return null;
 
-        for (int i = 0; i < password.length; i++)
-            password[i] = 0;
+        String password = new String(pwd);
 
-        return new String(password);
+        for (int i = 0; i < pwd.length; i++)
+            pwd[i] = 0;
+
+        return password;
     }
 }
