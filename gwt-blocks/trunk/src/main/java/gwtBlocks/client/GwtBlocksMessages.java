@@ -47,6 +47,6 @@ public interface GwtBlocksMessages extends Messages
     @DefaultMessage("A new version of the payslip viewer is available.<br /><br />Please right-click and select \"Refresh\" in your browser to view your payslip.")
     String incompatibleRemoteServiceException();
 
-    @DefaultMessage("An error has occurred on the server. Please report the problem to help desk.<br /><br />Click OK to close the browser window.")
+    @DefaultMessage("An error has occurred on the server. Please report the problem to help desk.")
     String unhandledError();
 }
