@@ -38,7 +38,7 @@ import java.util.Set;
 public class BaseModel<V>
 {
     private V                                                          _value, _oldValue;
-    private Set<ValueChangeListener<? extends BaseModel<V>>>           _changeListeners;
+    private Set<ValueChangeListener<? extends BaseModel<?>>>           _changeListeners;
     private Set<ValueChangeHistoryListener<? extends BaseModel<V>, V>> _changeHistoryListeners;
     private boolean                                                    _inBatchMode;
     private CompositeModel<?>                                          _parent;
@@ -209,15 +209,15 @@ public class BaseModel<V>
         return _inBatchMode || (_parent != null && _parent.isInBatchMode());
     }
 
-    public void registerChangeListener(ValueChangeListener<? extends BaseModel<V>> listener)
+    public void registerChangeListener(ValueChangeListener<? extends BaseModel<?>> listener)
     {
         if (_changeListeners == null)
-            _changeListeners = new HashSet<ValueChangeListener<? extends BaseModel<V>>>();
+            _changeListeners = new HashSet<ValueChangeListener<? extends BaseModel<?>>>();
 
         _changeListeners.add(listener);
     }
 
-    public void removeChangeListener(ValueChangeListener<? extends BaseModel<V>> listener)
+    public void removeChangeListener(ValueChangeListener<? extends BaseModel<?>> listener)
     {
         if (_changeListeners == null)
             return;
