@@ -1,6 +1,7 @@
 package buildBlocks.bootstrap;
 
-import buildBlocks.BuildError;
+import jBlocks.server.AggregateException;
+import jBlocks.server.IOUtils;
 import buildBlocks.BuildUtils;
 import buildBlocks.repos.SourceRepository;
 
@@ -14,6 +15,7 @@ public class ReposModel
     private volatile String           _user;
     private volatile String           _password;
     private volatile SourceRepository _srcRepos;
+    private volatile boolean          _invalidRepos;
 
     ReposModel()
     {
@@ -75,6 +77,11 @@ public class ReposModel
 
     long checkout(String revision, String path, String target)
     {
+        System.out.println("Checking out " + _url + path);
+
+        if (_invalidRepos)
+            throw new IllegalStateException("Repository is invalid");
+
         if (_srcRepos == null)
             _srcRepos = createSrcRepos();
 
@@ -87,12 +94,18 @@ public class ReposModel
         {
             SourceRepository repos = (SourceRepository) BuildUtils.loadClass(getClass().getClassLoader(), _type)
                 .newInstance();
+
+            if ("ask!".equalsIgnoreCase(_password))
+                _password = IOUtils.askPassword("Please enter password for " + _url);
+
             repos.init(_url, _user, _password);
+
             return repos;
         }
         catch (Exception e)
         {
-            throw new BuildError(e, false, false);
+            _invalidRepos = true;
+            throw AggregateException.with(e, "Unable to connect to repository.");
         }
     }
 }

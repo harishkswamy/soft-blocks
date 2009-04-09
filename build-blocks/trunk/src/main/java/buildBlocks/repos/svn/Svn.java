@@ -67,8 +67,6 @@ public class Svn implements SourceRepository
         {
             SVNURL reposUrl = _url.appendPath(path, false);
 
-            System.out.println("Checking out " + reposUrl);
-
             SVNUpdateClient updateClient = _manager.getUpdateClient();
             updateClient.setEventHandler(new UpdateEventHandler());
             updateClient.setIgnoreExternals(false);

@@ -231,7 +231,7 @@ public class ProjectModel
 
         try
         {
-            // if checkout requested and checkout failed then skip build but release latch
+            // if checkout was requested and checkout failed then skip build but release latch
             if (_checkout && _checkoutFailed)
                 return;
 

@@ -2,12 +2,12 @@ package buildBlocks.java.jee.gwt;
 
 import java.io.File;
 
+import buildBlocks.BuildUtils;
 import buildBlocks.FileTask;
 import buildBlocks.Module;
 import buildBlocks.ModuleInfo;
 import buildBlocks.Project;
 import buildBlocks.TaskInfo;
-import buildBlocks.BuildUtils;
 import buildBlocks.java.JavaModule;
 import buildBlocks.java.jee.JEEModule;
 
@@ -92,7 +92,14 @@ public class GWTApp<P extends Project<? extends GWTLayout>> extends Module<P>
         if (moduleName() == null)
             throw new Error("GWT module name has not been specified in the project.");
 
-        BuildUtils.java(gwtCompileJavaArgs(), gwtClasspath(), "com.google.gwt.dev.GWTCompiler", gwtCompilerArgs());
+        int status = BuildUtils.java(gwtCompileJavaArgs(), gwtClasspath(), "com.google.gwt.dev.GWTCompiler",
+            gwtCompilerArgs());
+
+        if (status != 0)
+        {
+            System.out.println();
+            throw new Error("GWT compiler error!");
+        }
     }
 
     @TaskInfo(desc = "Deploys the application locally in the target space.", deps = { "compile",
