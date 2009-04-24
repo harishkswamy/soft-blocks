@@ -46,7 +46,7 @@ public class FlexTableBuilder extends HTMLTableBuilder<FlexTableBuilder, FlexTab
         while (_table.getRowCount() > rowNum)
             _table.removeRow(rowNum);
 
-        movePointer(rowNum);
+        seek(rowNum, 0);
 
         return this;
     }

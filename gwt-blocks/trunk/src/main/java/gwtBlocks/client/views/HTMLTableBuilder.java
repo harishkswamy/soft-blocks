@@ -15,6 +15,7 @@ package gwtBlocks.client.views;
 
 import static com.google.gwt.user.client.ui.HasHorizontalAlignment.*;
 import static com.google.gwt.user.client.ui.HasVerticalAlignment.*;
+
 import jBlocks.shared.StringUtils;
 
 import com.google.gwt.user.client.ui.HTMLTable;
@@ -31,21 +32,20 @@ import com.google.gwt.user.client.ui.Widget;
  * one of the <code>set</code> methods automatically moves the pointer to the next cell and hence it must be the last
  * operation on the cell. The pointer can be moved to the next row by calling {@link #nextRow()}.
  * <p>
- * Methods that are common to more than one HTML element like <code>width</code> and <code>style</code> have a
- * suffix in their names to identify the element they apply to. Methods that have a "<code>T</code>" suffix apply to
- * table, those that have an "<code>R</code>" suffix apply to table rows and "<code>C</code>" applies to table
- * cells.
+ * Methods that are common to more than one HTML element like <code>width</code> and <code>style</code> have a suffix in
+ * their names to identify the element they apply to. Methods that have a "<code>T</code>" suffix apply to table, those
+ * that have an "<code>R</code>" suffix apply to table rows and "<code>C</code>" applies to table cells.
  * <p>
  * The builder has some switches that when turned on will apply the effect of the switch to all the cells of the table
  * from the current cell forward until the switch is turned off or the end of the table is reached.
  * <ul>
  * <li>The stretch switch stretches the cell widgets to fit the cell size and, can be turned on via {@link #hStretch()},
  * {@link #vStretch()} or {@link #stretch()} and turned off via {@link #dontStretch()}.
- * <li>The row style switch applies "<code>evenRow</code>" and "<code>oddRow</code>" styles to even and odd
- * rows respectively and, can be turned on via {@link #applyRowStyle()} and turned off via {@link #dontApplyRowStyle()}.
- * In order to apply "<code>evenRow</code>" style to odd rows and "<code>oddRow</code>" style to even rows,
- * simply use {@link #swapRowStyle()} instead of {@link #applyRowStyle()}. Swapping the row style twice will, as
- * expected, return the switch to the {@link #applyRowStyle()} behavior.
+ * <li>The row style switch applies "<code>evenRow</code>" and "<code>oddRow</code>" styles to even and odd rows
+ * respectively and, can be turned on via {@link #applyRowStyle()} and turned off via {@link #dontApplyRowStyle()}. In
+ * order to apply "<code>evenRow</code>" style to odd rows and "<code>oddRow</code>" style to even rows, simply use
+ * {@link #swapRowStyle()} instead of {@link #applyRowStyle()}. Swapping the row style twice will, as expected, return
+ * the switch to the {@link #applyRowStyle()} behavior.
  * </ul>
  * 
  * @author hkrishna
@@ -68,15 +68,9 @@ abstract class HTMLTableBuilder<B extends HTMLTableBuilder<B, T>, T extends HTML
 
         _applyRowStyle = _swapRowStyle = _hStretch = _vStretch = false;
 
-        movePointer(0);
+        seek(table.getRowCount(), 0);
 
         return builder();
-    }
-
-    protected void movePointer(int row)
-    {
-        _row = row;
-        _col = 0;
     }
 
     public B formLayout()
@@ -85,6 +79,26 @@ abstract class HTMLTableBuilder<B extends HTMLTableBuilder<B, T>, T extends HTML
     }
 
     // Table methods ============================================================
+
+    public B seek(int row, int col)
+    {
+        if (row < _table.getRowCount())
+        {
+            _row = row;
+
+            if (col < _table.getCellCount(_row))
+                _col = col;
+            else
+                _col = _table.getCellCount(_row);
+        }
+        else
+        {
+            _row = _table.getRowCount();
+            _col = 0;
+        }
+
+        return builder();
+    }
 
     /**
      * Sets the table's &lt;caption&gt;.
@@ -449,7 +463,7 @@ abstract class HTMLTableBuilder<B extends HTMLTableBuilder<B, T>, T extends HTML
      */
     public B nextRow()
     {
-        movePointer(++_row);
+        seek(++_row, 0);
 
         return setRowStyle();
     }
