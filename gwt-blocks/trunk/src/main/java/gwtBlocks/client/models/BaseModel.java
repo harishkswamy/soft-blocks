@@ -104,16 +104,16 @@ public class BaseModel<V>
         _oldValue = _value;
         _value = value;
 
-        if (isAutoCommit())
-            commit();
+        afterSetValue();
 
         if (_parent != null)
             _parent.childValueChanged(this);
 
+        if (isAutoCommit())
+            commit();
+
         if (!isInBatchMode())
             fireValueChanged();
-
-        afterSetValue();
     }
 
     protected void beforeSetValue()
