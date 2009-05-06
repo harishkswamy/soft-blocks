@@ -23,7 +23,7 @@ import gwtBlocks.generators.BindingProperty;
  * <p>
  * This is a buffered model, meaning values stored in this model are not transferred to the domain object until
  * {@link #commit()} is called. However, buffering can be turned off by turning auto commit on via
- * {@link #setAutoCommit(boolean)}.
+ * {@link #autoCommitOn(boolean)}.
  * <p>
  * This model is automatically generated based on the conventions outlined below.
  * <ul>

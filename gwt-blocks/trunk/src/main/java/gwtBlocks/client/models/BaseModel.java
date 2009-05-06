@@ -23,8 +23,8 @@ import java.util.Set;
  * This is the base implementation of the presentation model pattern of the MVC framework.
  * <P>
  * This is the fundamental unit that forms a tree of models to support a composite view. Every model becomes a part of
- * the tree by holding on to its parent provided to it via {@link #setParent(String, CompositeModel)}. The root model
- * of the tree has no parent and so its parent is left null.
+ * the tree by holding on to its parent provided to it via {@link #setParent(String, CompositeModel)}. The root model of
+ * the tree has no parent and so its parent is left null.
  * <p>
  * Every model holds a single value and has listeners, registered to it via
  * {@link #registerChangeListener(ValueChangeListener)}, that listen to changes to the model's value. Every parent
@@ -40,19 +40,29 @@ public class BaseModel<V>
     private V                                                          _value, _oldValue;
     private Set<ValueChangeListener<? extends BaseModel<?>>>           _changeListeners;
     private Set<ValueChangeHistoryListener<? extends BaseModel<V>, V>> _changeHistoryListeners;
-    private boolean                                                    _inBatchMode;
     private CompositeModel<?>                                          _parent;
-    private boolean                                                    _autoCommit;
+    private boolean                                                    _discreet, _autoCommit;
 
     public BaseModel()
     {
     }
 
+    /**
+     * @see #setParent(String, CompositeModel)
+     */
     public BaseModel(String key, CompositeModel<?> parent)
     {
         setParent(key, parent);
     }
 
+    /**
+     * Sets the parent, registers itself as a child in the parent and, invoked {@link #parentValueChanged()}.
+     * 
+     * @param key
+     *            This model's name.
+     * @param parent
+     *            The parent.
+     */
     public void setParent(String key, CompositeModel<?> parent)
     {
         if (parent == _parent)
@@ -67,31 +77,22 @@ public class BaseModel<V>
         parentValueChanged();
     }
 
+    /**
+     * @param <P>
+     *            The parent of this model.
+     * @return
+     */
     @SuppressWarnings("unchecked")
     public <P extends CompositeModel<?>> P getParent()
     {
         return (P) _parent;
     }
 
-    public void setAutoCommit(boolean autoCommit)
-    {
-        _autoCommit = autoCommit;
-    }
-
-    public boolean isAutoCommit()
-    {
-        return _autoCommit || (_parent != null && _parent.isAutoCommit());
-    }
-
-    public void parentValueChanged()
-    {
-    }
-
     /**
      * Sets this model's value and notifies registered change listeners. Sub classes may implement
      * {@link #beforeNotifyChangeListeners()} method to hook behavior before notifying change listeners.
      * <p>
-     * If in batch mode this method will not notify listeners until {@link #endBatch()} is called, neither will it
+     * If in batch mode this method will not notify listeners until {@link #discreetOff()} is called, neither will it
      * invoke the {@link #beforeNotifyChangeListeners()} hook.
      * 
      * @param value
@@ -99,12 +100,10 @@ public class BaseModel<V>
      */
     public void setValue(V value)
     {
-        beforeSetValue();
-
         _oldValue = _value;
         _value = value;
 
-        afterSetValue();
+        valueChanged();
 
         if (_parent != null)
             _parent.childValueChanged(this);
@@ -112,18 +111,55 @@ public class BaseModel<V>
         if (isAutoCommit())
             commit();
 
-        if (!isInBatchMode())
+        if (!isDiscreet())
             fireValueChanged();
     }
 
-    protected void beforeSetValue()
+    /**
+     * @return The value of this model.
+     */
+    public V getValue()
     {
-
+        return _value;
     }
 
-    protected void afterSetValue()
+    /**
+     * Hook method called right after this model's value is set before notifying the parent.
+     */
+    protected void valueChanged()
     {
+    }
 
+    /**
+     * Listener method that will be invoked when the parent model's value changes.
+     */
+    protected void parentValueChanged()
+    {
+    }
+
+    /**
+     * Turning auto-commit on will stop buffering the model's value and pass it through to the underlying domain object.
+     */
+    public void autoCommitOn()
+    {
+        _autoCommit = true;
+    }
+
+    /**
+     * Turning auto-commit off will start buffering the value in this model and will only pass it to the underlying
+     * domain object upon {@link #commit()}.
+     */
+    public void autoCommitOff()
+    {
+        _autoCommit = false;
+    }
+
+    /**
+     * @return true if this model or any of its ancestors are in auto-commit mode, false otherwise.
+     */
+    public final boolean isAutoCommit()
+    {
+        return _autoCommit || (_parent != null && _parent.isAutoCommit());
     }
 
     /**
@@ -131,7 +167,6 @@ public class BaseModel<V>
      */
     protected void commit()
     {
-
     }
 
     /**
@@ -141,6 +176,39 @@ public class BaseModel<V>
     {
         if (!isAutoCommit())
             commit();
+    }
+
+    /**
+     * Turning discreet on stops the changes to this model's value from being notified to listeners.
+     * 
+     * @see #discreetOff()
+     */
+    public void discreetOn()
+    {
+        _discreet = true;
+    }
+
+    /**
+     * Turning discreet off starts notifying the listeners of the changes to this model's value.
+     * 
+     * @param fire
+     *            when true, notifies the listeners of the last value in the model, when false, it only notifies future
+     *            changes to the model's value.
+     */
+    public void discreetOff(boolean fire)
+    {
+        _discreet = false;
+
+        if (fire)
+            fireValueChanged();
+    }
+
+    /**
+     * @return true if this model or any of its ancestors are discreet, false otherwise.
+     */
+    public final boolean isDiscreet()
+    {
+        return _discreet || (_parent != null && _parent.isDiscreet());
     }
 
     private void fireValueChanged()
@@ -169,44 +237,11 @@ public class BaseModel<V>
     }
 
     /**
-     * Hook method that will be called immediately after this model's value is set but before notifying any registered
-     * change listeners. This method will not be invoked when in batch mode until {@link #endBatch()} is called.
+     * Hook method that will be invoked before notifying any registered change listeners. This method will not be
+     * invoked when in discreet mode until {@link #discreetOff()} is called.
      */
     protected void beforeNotifyChangeListeners()
     {
-    }
-
-    public V getValue()
-    {
-        return _value;
-    }
-
-    /**
-     * Starting a batch stops the changes to this model value from being propagated to listeners.
-     * 
-     * @see #endBatch()
-     */
-    public void startBatch()
-    {
-        _inBatchMode = true;
-    }
-
-    /**
-     * If in batch mode, this method notifies all listeners and ends the batch.
-     */
-    public void endBatch()
-    {
-        if (isInBatchMode())
-        {
-            _inBatchMode = false;
-
-            fireValueChanged();
-        }
-    }
-
-    protected final boolean isInBatchMode()
-    {
-        return _inBatchMode || (_parent != null && _parent.isInBatchMode());
     }
 
     public void registerChangeListener(ValueChangeListener<? extends BaseModel<?>> listener)

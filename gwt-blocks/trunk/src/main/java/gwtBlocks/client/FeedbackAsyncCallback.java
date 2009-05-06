@@ -96,16 +96,16 @@ public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
         }
         catch (RPCMessageException e)
         {
-            MessageBox.alert(getMessage(e.getLocalizedMessage()), _rpcErrorCommands.get(e.getLocalizedMessage()));
+            MessageBox.alert(getMessage(e.getLocalizedMessage()), getErrorCommand(e.getLocalizedMessage()));
         }
         catch (IncompatibleRemoteServiceException e)
         {
-            MessageBox.error(GwtBlocksMessages.pick.incompatibleRemoteServiceException(), _rpcErrorCommands
-                .get("incompatibleRemoteServiceException"));
+            MessageBox.error(GwtBlocksMessages.pick.incompatibleRemoteServiceException(),
+                getErrorCommand("incompatibleRemoteServiceException"));
         }
         catch (Throwable t)
         {
-            MessageBox.error(GwtBlocksMessages.pick.unhandledError(), _rpcErrorCommands.get("unhandledError"));
+            MessageBox.error(GwtBlocksMessages.pick.unhandledError(), getErrorCommand("unhandledError"));
         }
 
         if (_barrier != null)
@@ -147,5 +147,13 @@ public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
         }
 
         return msgCode;
+    }
+
+    private Command getErrorCommand(String msgCode)
+    {
+        if (_rpcErrorCommands == null)
+            return null;
+
+        return _rpcErrorCommands.get(msgCode);
     }
 }

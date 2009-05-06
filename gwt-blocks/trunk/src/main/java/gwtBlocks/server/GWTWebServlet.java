@@ -23,7 +23,8 @@ import com.google.gwt.user.server.rpc.RemoteServiceServlet;
  */
 public abstract class GWTWebServlet extends RemoteServiceServlet
 {
-    private static final Logger _logger = LoggerFactory.getLogger(GWTWebServlet.class);
+    private static final long   serialVersionUID = 1L;
+    private static final Logger _logger          = LoggerFactory.getLogger(GWTWebServlet.class);
 
     /**
      * @return The {@link WebContext} for this application.

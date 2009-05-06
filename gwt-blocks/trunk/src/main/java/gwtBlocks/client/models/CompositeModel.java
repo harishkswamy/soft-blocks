@@ -151,7 +151,7 @@ public class CompositeModel<V> extends ValidatableModel<V>
     }
 
     @Override
-    public void afterSetValue()
+    public void valueChanged()
     {
         if (_children == null)
             return;
@@ -161,15 +161,15 @@ public class CompositeModel<V> extends ValidatableModel<V>
     }
 
     @Override
-    public void endBatch()
+    public void discreetOff(boolean fire)
     {
         if (_children != null)
         {
             for (BaseModel<?> child : _children.values())
-                child.endBatch();
+                child.discreetOff(fire);
         }
 
-        super.endBatch();
+        super.discreetOff(fire);
     }
 
     private Map<String, BaseModel<?>> getOrCreateChildren()
