@@ -36,12 +36,12 @@ public class BaseDomainObject implements Serializable
         if (obj == this)
             return true;
 
-        if (obj == null || !(getClass().equals(obj.getClass())))
+        if (obj == null || !(getClass().equals(obj.getClass())) || _id == null)
             return false;
 
         BaseDomainObject domainObj = (BaseDomainObject) obj;
 
-        return _id == null ? (domainObj.getId() == null) : _id.equals(domainObj.getId());
+        return _id.equals(domainObj.getId());
     }
 
     public int hashCode()
