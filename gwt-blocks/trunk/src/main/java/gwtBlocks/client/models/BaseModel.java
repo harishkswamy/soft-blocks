@@ -40,6 +40,7 @@ public class BaseModel<V>
     private V                                                          _value, _oldValue;
     private Set<ValueChangeListener<? extends BaseModel<?>>>           _changeListeners;
     private Set<ValueChangeHistoryListener<? extends BaseModel<V>, V>> _changeHistoryListeners;
+    private String                                                     _key;
     private CompositeModel<?>                                          _parent;
     private boolean                                                    _discreet, _autoCommit;
 
@@ -68,6 +69,7 @@ public class BaseModel<V>
         if (parent == _parent)
             return;
 
+        _key = key;
         _parent = parent;
 
         if (_parent != null)
@@ -75,6 +77,11 @@ public class BaseModel<V>
 
         // In case this model is created after the parent model value is set.
         parentValueChanged();
+    }
+
+    public String getKey()
+    {
+        return _key;
     }
 
     /**

@@ -24,7 +24,7 @@ import java.util.Map;
  * 
  * @author hkrishna
  */
-public class CompositeModel<V> extends ValidatableModel<V>
+public class CompositeModel<V> extends ValidatableModel<V> implements Iterable<BaseModel<?>>
 {
     /**
      * An immutable {@link Iterator} that iterates over the children.
@@ -132,7 +132,7 @@ public class CompositeModel<V> extends ValidatableModel<V>
     /**
      * @return An {@link Iterator} that iterates over this model's children. The returned iterator disallows mutations.
      */
-    public Iterator<BaseModel<?>> getChildIterator()
+    public Iterator<BaseModel<?>> iterator()
     {
         if (_children == null)
             return null;
