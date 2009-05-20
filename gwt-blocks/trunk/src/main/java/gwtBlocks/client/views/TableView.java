@@ -51,18 +51,18 @@ public abstract class TableView<V> extends BaseView<TableView<V>.TableWidget, Ta
 
             // Header
             _headerDiv = DOM.createDiv();
-            DOM.setElementAttribute(_headerDiv, "class", "header");
+            DOM.setElementAttribute(_headerDiv, "class", "headerDiv");
 
             // Body
             _bodyDiv = DOM.createDiv();
-            DOM.setElementAttribute(_bodyDiv, "class", "body");
+            DOM.setElementAttribute(_bodyDiv, "class", "bodyDiv");
 
             if (isScrollable())
                 _bodyDiv.getStyle().setProperty("overflow", "auto");
             else
                 _bodyDiv.getStyle().setProperty("overflow", "visible");
 
-            _bodyDiv.getStyle().setProperty("overflow-x", "hidden");
+            _bodyDiv.getStyle().setProperty("overflowX", "hidden");
 
             init(header, body);
         }
@@ -88,7 +88,7 @@ public abstract class TableView<V> extends BaseView<TableView<V>.TableWidget, Ta
             adoptTable(table, parent);
 
             // Personalize
-            table.getElement().getStyle().setProperty("table-layout", "fixed");
+            table.getElement().getStyle().setProperty("tableLayout", "fixed");
         }
 
         private void adoptTable(FlexTable table, Element parent)

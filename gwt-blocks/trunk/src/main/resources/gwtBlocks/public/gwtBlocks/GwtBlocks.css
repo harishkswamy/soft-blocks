@@ -1135,30 +1135,30 @@ body.processing {
 }
 
 .gbk-TableView table {
-	table-layout: fixed; /* This is not getting set from code */
+	/* table-layout: fixed; */ /* This is not getting set from code */
 }
 
-.gbk-TableView .header {
+.gbk-TableView .headerDiv {
 	background: url(images/grayGradient.jpg) bottom repeat-x;
 }
 
-.gbk-TableView .header {
+.gbk-TableView .headerDiv {
 	border-bottom: 1px solid #CCC;
 }
 
-.gbk-TableView .header td {
+.gbk-TableView .headerDiv td {
 	border-right: 1px solid #CCC;
 }
 
-.gbk-TableView .body {
+.gbk-TableView .bodyDiv {
 	background-color: #DDD;
 }
 
-.gbk-TableView .body table {
+.gbk-TableView .bodyDiv table {
 	background-color: #FFF;
 }
 
-.gbk-TableView .body tr.evenRow {
+.gbk-TableView .bodyDiv tr.evenRow {
 	background-color: #F0F8FF;
 }
 
@@ -1166,7 +1166,7 @@ body.processing {
 	padding: 3px;
 }
 
-.gbk-TableView .body td {
+.gbk-TableView .bodyDiv td {
 	border-right: 1px solid #CCC;
 	border-bottom: 1px solid #CCC;
 }
