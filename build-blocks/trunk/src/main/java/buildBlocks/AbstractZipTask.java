@@ -89,13 +89,11 @@ abstract class AbstractZipTask<T extends AbstractZipTask<?>>
         return (T) this;
     }
 
-    @SuppressWarnings("unchecked")
     public T add()
     {
         return (T) addFiles(_fileTask.getFiles(true));
     }
 
-    @SuppressWarnings("unchecked")
     public T add(String... paths)
     {
         List<File> files = new ArrayList<File>();
