@@ -160,18 +160,6 @@ public class CompositeModel<V> extends ValidatableModel<V> implements Iterable<B
             child.parentValueChanged();
     }
 
-    @Override
-    public void discreetOff(boolean fire)
-    {
-        if (_children != null)
-        {
-            for (BaseModel<?> child : _children.values())
-                child.discreetOff(fire);
-        }
-
-        super.discreetOff(fire);
-    }
-
     private Map<String, BaseModel<?>> getOrCreateChildren()
     {
         if (_children == null)

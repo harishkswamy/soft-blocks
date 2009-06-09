@@ -76,7 +76,8 @@ public class BaseModel<V>
             _parent.addChild(key, this);
 
         // In case this model is created after the parent model value is set.
-        parentValueChanged();
+        if (!isDiscreet())
+            parentValueChanged();
     }
 
     public String getKey()
@@ -110,6 +111,12 @@ public class BaseModel<V>
         _oldValue = _value;
         _value = value;
 
+        if (!isDiscreet())
+            announceValueChange(true);
+    }
+
+    private void announceValueChange(boolean fire)
+    {
         valueChanged();
 
         if (_parent != null)
@@ -118,7 +125,7 @@ public class BaseModel<V>
         if (isAutoCommit())
             commit();
 
-        if (!isDiscreet())
+        if (fire)
             fireValueChanged();
     }
 
@@ -206,8 +213,7 @@ public class BaseModel<V>
     {
         _discreet = false;
 
-        if (fire)
-            fireValueChanged();
+        announceValueChange(fire);
     }
 
     /**
