@@ -116,7 +116,9 @@ public class Artifact
         {
             try
             {
-                BuildUtils.download(url + path, _path, null);
+                File sha1 = BuildUtils.download(url + path + ".sha1", _path + ".sha1", null);
+
+                BuildUtils.download(url + path, _path, new String(BuildUtils.readFile(sha1)));
 
                 return _path;
             }

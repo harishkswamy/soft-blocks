@@ -65,8 +65,10 @@ public class BuildUtils
 
         else
         {
+            sha1Chksum = sha1Chksum.split(" ")[0].trim();
+
             if (!chkSum.equals(sha1Chksum))
-                throw new Error(String.format("SHA1 checksum mismatch, expected: %s, downloaded: %s", sha1Chksum,
+                throw new Exception(String.format("SHA1 checksum mismatch, expected: %s, downloaded: %s", sha1Chksum,
                     chkSum));
         }
 
