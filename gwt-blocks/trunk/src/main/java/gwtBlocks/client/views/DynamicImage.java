@@ -1,6 +1,6 @@
 package gwtBlocks.client.views;
 
-import gwtBlocks.client.models.BaseModel;
+import gwtBlocks.shared.models.BaseModel;
 
 import com.google.gwt.user.client.ui.Image;
 

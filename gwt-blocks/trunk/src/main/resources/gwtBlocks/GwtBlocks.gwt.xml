@@ -25,7 +25,7 @@
     <stylesheet src="gwtBlocks/GwtBlocks.css" />
 
     <generate-with class="gwtBlocks.generators.BeanBindingModelGenerator">
-        <when-type-assignable class="gwtBlocks.client.models.BeanBindingModel" />
+        <when-type-assignable class="gwtBlocks.shared.models.BeanBindingModel" />
     </generate-with>
   
 </module>

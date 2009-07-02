@@ -1,6 +1,6 @@
 package gwtBlocks.client.views;
 
-import gwtBlocks.client.models.InputModel;
+import gwtBlocks.shared.models.InputModel;
 import jBlocks.shared.Lookup;
 
 import java.util.ArrayList;

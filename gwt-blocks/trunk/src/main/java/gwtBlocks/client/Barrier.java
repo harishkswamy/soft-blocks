@@ -39,7 +39,7 @@ public class Barrier
         _proceedTask = null;
         _failed = false;
     }
-    
+
     public void join()
     {
         _pendingParties++;
@@ -75,7 +75,7 @@ public class Barrier
 
         _results.put(key, result);
     }
-    
+
     protected Map<String, Object> getResults()
     {
         return _results;

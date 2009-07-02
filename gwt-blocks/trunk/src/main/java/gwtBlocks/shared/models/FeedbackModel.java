@@ -11,9 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package gwtBlocks.client.models;
-
-import gwtBlocks.client.GwtBlocksMessages;
+package gwtBlocks.shared.models;
 
 /**
  * This is a {@link BaseModel} that wraps the {@link MessageModel} and has a name. This is a convenience model that can
@@ -51,7 +49,8 @@ public class FeedbackModel<V> extends BaseModel<V>
         MessageModel msgModel = getMessageModel();
 
         if (msgModel == null)
-            throw new IllegalArgumentException(GwtBlocksMessages.pick.noRegisteredMessageModel(_name, msg));
+            throw new IllegalArgumentException("There is registered message model for: " + _name + " to show message: "
+                + msg);
 
         msgModel.addMessage(this, msg, affectedModels);
     }

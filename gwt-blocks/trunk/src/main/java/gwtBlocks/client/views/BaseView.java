@@ -13,8 +13,8 @@
 // limitations under the License.
 package gwtBlocks.client.views;
 
-import gwtBlocks.client.ValueChangeListener;
-import gwtBlocks.client.models.BaseModel;
+import gwtBlocks.shared.models.BaseModel;
+import gwtBlocks.shared.models.ValueChangeListener;
 
 import com.google.gwt.user.client.ui.Composite;
 import com.google.gwt.user.client.ui.Widget;

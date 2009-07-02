@@ -11,10 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package gwtBlocks.client.models;
-
-import gwtBlocks.client.ValidationException;
-import gwtBlocks.client.Validator;
+package gwtBlocks.shared.models;
 
 import java.util.HashSet;
 import java.util.Set;

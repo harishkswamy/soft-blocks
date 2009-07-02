@@ -11,28 +11,12 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package gwtBlocks.client.models;
+package gwtBlocks.shared.models;
 
 /**
  * @author hkrishna
  */
-public class InputModel<T> extends ValidatableModel<T>
+public interface ValueChangeHistoryListener<M extends BaseModel<V>, V>
 {
-    public InputModel()
-    {
-        
-    }
-    
-    /**
-     * Instatiates and registers itself as a child in the provided parent.
-     * 
-     * @param key
-     *            The key that identifies this model in the parent.
-     * @param parent
-     *            The parent model.
-     */
-    public InputModel(String key, CompositeModel<?> parent)
-    {
-        setParent(key, parent);
-    }
+    void valueChanged(M model, V oldValue);
 }

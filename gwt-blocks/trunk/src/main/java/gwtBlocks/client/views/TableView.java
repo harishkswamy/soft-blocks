@@ -13,7 +13,7 @@
 // limitations under the License.
 package gwtBlocks.client.views;
 
-import gwtBlocks.client.models.TableModel;
+import gwtBlocks.shared.models.TableModel;
 
 import java.util.HashMap;
 import java.util.List;

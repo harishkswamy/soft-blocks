@@ -13,7 +13,7 @@
 // limitations under the License.
 package gwtBlocks.generators;
 
-import gwtBlocks.client.models.PropertyBindingModel;
+import gwtBlocks.shared.models.PropertyBindingModel;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -101,7 +101,7 @@ public class BeanBindingModelGenerator extends AbstractClassGenerator
     @Override
     protected void addImports(ClassSourceFileComposerFactory composerFactory)
     {
-        composerFactory.addImport("gwtBlocks.client.models.PropertyBindingModel");
+        composerFactory.addImport("gwtBlocks.shared.models.PropertyBindingModel");
 
         if (_hook == null)
             return;

@@ -13,7 +13,7 @@
 // limitations under the License.
 package gwtBlocks.client.views;
 
-import gwtBlocks.client.models.InputModel;
+import gwtBlocks.shared.models.InputModel;
 import jBlocks.shared.StringUtils;
 
 import com.google.gwt.user.client.ui.HTML;

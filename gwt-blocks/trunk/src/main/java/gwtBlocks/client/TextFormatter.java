@@ -19,6 +19,6 @@ package gwtBlocks.client;
 public interface TextFormatter<T>
 {
     String format(T value);
-    
+
     T parse(String text) throws FormatterException;
 }

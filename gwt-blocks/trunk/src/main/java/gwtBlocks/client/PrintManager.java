@@ -32,36 +32,36 @@ import com.google.gwt.user.client.ui.UIObject;
 public class PrintManager
 {
     private static native boolean populatePrintingFrame(String html) /*-{
-         var frame = $doc.getElementById('__printingFrame');
-         if (!frame) {
-             $wnd.alert("Error: Can't find printing frame.");
-             return false;
-         }
-         var doc = frame.contentWindow.document;
-         doc.open();
-         doc.write(html);
-         doc.close();
-         return true;
-     }-*/;
+                                                                     var frame = $doc.getElementById('__printingFrame');
+                                                                     if (!frame) {
+                                                                     $wnd.alert("Error: Can't find printing frame.");
+                                                                     return false;
+                                                                     }
+                                                                     var doc = frame.contentWindow.document;
+                                                                     doc.open();
+                                                                     doc.write(html);
+                                                                     doc.close();
+                                                                     return true;
+                                                                     }-*/;
 
     private static native void printFrame() /*-{
-         var frame = $doc.getElementById('__printingFrame');
+                                            var frame = $doc.getElementById('__printingFrame');
 
-         if (navigator.userAgent.toLowerCase().indexOf("msie") != -1)
-             frame.contentWindow.document.execCommand('print', false, null);
-         else
-         {
-             frame = frame.contentWindow;
-             frame.focus();
-             frame.print();
-         }
-     }-*/;
+                                            if (navigator.userAgent.toLowerCase().indexOf("msie") != -1)
+                                            frame.contentWindow.document.execCommand('print', false, null);
+                                            else
+                                            {
+                                            frame = frame.contentWindow;
+                                            frame.focus();
+                                            frame.print();
+                                            }
+                                            }-*/;
 
     private static native void openPreviewWindow(String html) /*-{
-         var win = $wnd.open('', 'printPreview', 'menubar=yes,scrollbars=yes,resizable=yes,toolbar=no,location=no,status=no');
-         win.document.write(html);
-         win.document.close();
-     }-*/;
+                                                              var win = $wnd.open('', 'printPreview', 'menubar=yes,scrollbars=yes,resizable=yes,toolbar=no,location=no,status=no');
+                                                              win.document.write(html);
+                                                              win.document.close();
+                                                              }-*/;
 
     public static void print(String html)
     {

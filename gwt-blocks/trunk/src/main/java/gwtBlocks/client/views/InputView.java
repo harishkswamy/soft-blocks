@@ -15,7 +15,7 @@ package gwtBlocks.client.views;
 
 import gwtBlocks.client.FormatterException;
 import gwtBlocks.client.TextFormatter;
-import gwtBlocks.client.models.InputModel;
+import gwtBlocks.shared.models.InputModel;
 
 import com.google.gwt.user.client.ui.Widget;
 

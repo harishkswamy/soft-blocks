@@ -15,8 +15,8 @@ package gwtBlocks.client.views;
 
 import gwtBlocks.client.TextFormatter;
 import gwtBlocks.client.TextFormatters;
-import gwtBlocks.client.models.BaseModel;
-import gwtBlocks.client.models.InputModel;
+import gwtBlocks.shared.models.BaseModel;
+import gwtBlocks.shared.models.InputModel;
 import jBlocks.shared.Lookup;
 
 import java.util.List;

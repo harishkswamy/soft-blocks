@@ -1,4 +1,4 @@
-package gwtBlocks.client.models;
+package gwtBlocks.shared.models;
 
 import java.util.List;
 

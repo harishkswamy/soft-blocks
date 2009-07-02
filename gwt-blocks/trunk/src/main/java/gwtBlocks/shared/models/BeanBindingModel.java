@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package gwtBlocks.client.models;
+package gwtBlocks.shared.models;
 
 import gwtBlocks.generators.BindingClass;
 import gwtBlocks.generators.BindingProperty;
@@ -29,10 +29,11 @@ import gwtBlocks.generators.BindingProperty;
  * <ul>
  * <li>The model class must declare a no args constructor.</li>
  * <li>The model class must declare the binding class name via the {@link BindingClass} annotation. For example, the
- * following declaration binds the {@link PropertyBindingModel} properties in <code>DomainModel</code> to the
- * properties in <code>com.xyz.Domain</code>.
+ * following declaration binds the {@link PropertyBindingModel} properties in <code>DomainModel</code> to the properties
+ * in <code>com.xyz.Domain</code>.
  * 
- * <pre><code>
+ * <pre>
+ * &lt;code&gt;
  * &#064;BindingClass(com.xyz.Domain.class) 
  * public abstract DomainModel extends BeanBindingModel&lt;Domain&gt;
  * {
@@ -41,8 +42,8 @@ import gwtBlocks.generators.BindingProperty;
  *     
  *     public abstract PropertyBindingModel&lt;String&gt; getNameModel();
  * }
- * </code></pre>
- * 
+ * &lt;/code&gt;
+ * </pre>
  * <li>The binding class must declare a no args constructor.</li>
  * <li>The model class must declare the properties to be bound as abstract getter methods that return
  * {@link PropertyBindingModel} as shown in the example above. The getter methods must declare the binding property via

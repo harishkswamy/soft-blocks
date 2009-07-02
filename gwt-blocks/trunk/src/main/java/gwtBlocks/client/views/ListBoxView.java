@@ -1,7 +1,7 @@
 package gwtBlocks.client.views;
 
-import gwtBlocks.client.ValueChangeListener;
-import gwtBlocks.client.models.InputModel;
+import gwtBlocks.shared.models.InputModel;
+import gwtBlocks.shared.models.ValueChangeListener;
 import jBlocks.shared.Lookup;
 
 import java.util.ArrayList;

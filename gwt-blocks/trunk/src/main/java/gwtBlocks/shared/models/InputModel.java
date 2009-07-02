@@ -11,11 +11,28 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-package gwtBlocks.client;
+package gwtBlocks.shared.models;
 
-import gwtBlocks.client.models.ValidatableModel;
-
-public interface Validator<V>
+/**
+ * @author hkrishna
+ */
+public class InputModel<T> extends ValidatableModel<T>
 {
-    void validate(ValidatableModel<V> model) throws ValidationException;
+    public InputModel()
+    {
+
+    }
+
+    /**
+     * Instatiates and registers itself as a child in the provided parent.
+     * 
+     * @param key
+     *            The key that identifies this model in the parent.
+     * @param parent
+     *            The parent model.
+     */
+    public InputModel(String key, CompositeModel<?> parent)
+    {
+        setParent(key, parent);
+    }
 }
