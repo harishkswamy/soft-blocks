@@ -32,7 +32,7 @@ public class JEEModule<P extends Project<? extends JEELayout>> extends Module<P>
         P p = project();
         JEELayout l = p.layout();
 
-        FileTask fileTask = new FileTask(l.sourceWebappPath()).exclude(null);
+        FileTask fileTask = new FileTask(l.sourceWebappPath()).exclude((String) null);
         fileTask.copyToDir(l.targetWebappPath(), false);
 
         String libPath = l.targetWebinfLib();

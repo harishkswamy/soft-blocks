@@ -1,6 +1,7 @@
 package buildBlocks;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,9 @@ public class FileTask
     private Pattern     _include;
     private Pattern     _exclude;
 
+    private FileFilter  _includeFilter;
+    private FileFilter  _excludeFilter;
+
     private boolean     _includeDirs;
     private boolean     _includeFiles;
     private boolean     _forceWrite;
@@ -65,6 +69,9 @@ public class FileTask
 
         _include = null;
         _exclude = null;
+
+        _includeFilter = null;
+        _excludeFilter = null;
 
         _includeDirs = false;
         _includeFiles = false;
@@ -122,6 +129,20 @@ public class FileTask
             _exclude = _excludeExpr == null ? null : Pattern.compile(_excludeExpr);
 
         return _exclude;
+    }
+
+    public FileTask include(FileFilter filter)
+    {
+        _includeFilter = filter;
+
+        return this;
+    }
+
+    public FileTask exclude(FileFilter filter)
+    {
+        _excludeFilter = filter;
+
+        return this;
     }
 
     public List<File> getDirs()
@@ -271,7 +292,11 @@ public class FileTask
         if (excludes() != null && excludes().matcher(path).matches())
             return;
 
-        boolean includeFile = includes() == null || includes().matcher(path).matches();
+        if (_excludeFilter != null && _excludeFilter.accept(file))
+            return;
+
+        boolean includeFile = (includes() == null || includes().matcher(path).matches())
+            && (_includeFilter == null || _includeFilter.accept(file));
 
         if (file.isDirectory())
         {
