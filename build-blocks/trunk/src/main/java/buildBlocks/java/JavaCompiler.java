@@ -27,6 +27,7 @@ public abstract class JavaCompiler
     {
         if (BuildCtx.ctx().traceOn())
         {
+            System.out.println(getClass());
             System.out.println("Source path: " + sourcePath);
             System.out.println("Class path: " + classPath);
             System.out.println("Target path: " + targetPath);

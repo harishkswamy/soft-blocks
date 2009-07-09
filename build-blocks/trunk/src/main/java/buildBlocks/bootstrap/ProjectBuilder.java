@@ -56,7 +56,7 @@ public final class ProjectBuilder extends Builder
         System.out.println();
         System.out.println("Loading project...");
 
-        loadProject();
+        loadProject().init();
 
         System.out.println();
 

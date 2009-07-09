@@ -50,8 +50,13 @@ public abstract class Project<L extends Layout> implements TaskContainer
 
         _taskManager.register(this);
     }
-
+    
     // Public API ==================================================
+
+    public void init()
+    {
+        
+    }
 
     public String group()
     {
