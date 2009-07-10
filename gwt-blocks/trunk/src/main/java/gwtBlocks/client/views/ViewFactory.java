@@ -19,6 +19,7 @@ import gwtBlocks.shared.models.BaseModel;
 import gwtBlocks.shared.models.InputModel;
 import jBlocks.shared.Lookup;
 
+import java.util.Date;
 import java.util.List;
 
 import com.google.gwt.user.client.ui.KeyboardListenerAdapter;
@@ -112,6 +113,19 @@ public class ViewFactory
 
         TextBoxView<TextBox, M, V> view = new TextBoxView<TextBox, M, V>(widget, model);
         view.setFormatter(formatter);
+
+        return view;
+    }
+
+    public <M extends InputModel<Date>> TextBoxView<TextBox, M, Date> newDateTimeBox(M model, String name, String format)
+    {
+        model.setName(name);
+
+        TextBox widget = new TextBox();
+        widget.addStyleDependentName("Date");
+
+        TextBoxView<TextBox, M, Date> view = new TextBoxView<TextBox, M, Date>(widget, model);
+        view.setFormatter(TextFormatters.dateTimeFormatter(format));
 
         return view;
     }

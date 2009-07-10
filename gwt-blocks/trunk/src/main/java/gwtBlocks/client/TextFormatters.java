@@ -15,9 +15,11 @@ package gwtBlocks.client;
 
 import jBlocks.shared.StringUtils;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.gwt.i18n.client.DateTimeFormat;
 import com.google.gwt.i18n.client.NumberFormat;
 
 /**
@@ -113,6 +115,36 @@ public class TextFormatters
         }
     }
 
+    private static class DateTimeFormatter extends AbstractFormatter<Date>
+    {
+        private static final Map<String, DateTimeFormatter> _cache = new HashMap<String, DateTimeFormatter>();
+
+        @SuppressWarnings("unchecked")
+        private static <F extends DateTimeFormatter> F getFormatter(String format)
+        {
+            return (F) _cache.get(format);
+        }
+
+        private DateTimeFormat _formatter;
+
+        private DateTimeFormatter(String format)
+        {
+            _formatter = DateTimeFormat.getFormat(format);
+            _cache.put(format, this);
+        }
+
+        public Date parse(String text) throws FormatterException
+        {
+            return StringUtils.isEmpty(text) ? null : _formatter.parse(text);
+        }
+
+        @Override
+        public String format(Date date)
+        {
+            return date == null ? "" :_formatter.format(date);
+        }
+    }
+
     public static NumberFormatter<Integer> integerFormatter(String format)
     {
         IntegerFormatter formatter = NumberFormatter.getFormatter(format);
@@ -129,6 +161,16 @@ public class TextFormatters
 
         if (formatter == null)
             formatter = new DoubleFormatter(format);
+
+        return formatter;
+    }
+
+    public static DateTimeFormatter dateTimeFormatter(String format)
+    {
+        DateTimeFormatter formatter = DateTimeFormatter.getFormatter(format);
+
+        if (formatter == null)
+            formatter = new DateTimeFormatter(format);
 
         return formatter;
     }

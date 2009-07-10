@@ -1131,42 +1131,42 @@ body.processing {
 
 /* = Table styles ========================================== */
 .gbk-TableView {
-	background-color: #FFF;
+    background-color: #FFF;
+    border-top: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+}
+
+.gbk-TableView caption {
+    font-size: 150%;
 }
 
 .gbk-TableView table {
-	/* table-layout: fixed; */ /* This is not getting set from code */
+    /* table-layout: fixed; */ /* This is not getting set from code */
 }
 
 .gbk-TableView .headerDiv {
-	background: url(images/grayGradient.jpg) bottom repeat-x;
-}
-
-.gbk-TableView .headerDiv {
-	border-bottom: 1px solid #CCC;
+    background: url(images/grayGradient.jpg) bottom repeat-x;
 }
 
 .gbk-TableView .headerDiv td {
-	border-right: 1px solid #CCC;
 }
 
 .gbk-TableView .bodyDiv {
-	background-color: #DDD;
+    background-color: #DDD;
 }
 
 .gbk-TableView .bodyDiv table {
-	background-color: #FFF;
+    background-color: #FFF;
 }
 
-.gbk-TableView .bodyDiv tr.evenRow {
-	background-color: #F0F8FF;
+.gbk-TableView tr.evenRow {
+    background-color: #F0F8FF;
 }
 
 .gbk-TableView td {
-	padding: 3px;
+    padding: 3px;
 }
 
-.gbk-TableView .bodyDiv td {
-	border-right: 1px solid #CCC;
-	border-bottom: 1px solid #CCC;
+.gbk-TableView td {
+    border-right: 1px solid #CCC;
 }
