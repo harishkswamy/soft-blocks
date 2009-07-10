@@ -61,6 +61,11 @@ public class SqlClient
         };
     }
 
+    public DataManager dataManager()
+    {
+        return _dataManager;
+    }
+
     public void loadSchema(Class<?> clazz, String name)
     {
         Properties sqlProps = IOUtils.loadProperties(clazz.getResource(name + ".sql.properties"));

@@ -24,7 +24,7 @@ import javax.naming.InitialContext;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
 
-class DataManager
+public class DataManager
 {
     private String     _dbId;
     private String     _jndiName;
@@ -84,7 +84,7 @@ class DataManager
         }
     }
 
-    String dbId()
+    public String dbId()
     {
         return _dbId;
     }
