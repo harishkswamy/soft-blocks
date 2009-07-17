@@ -38,7 +38,7 @@ public abstract class TableView<V> extends BaseView<TableView<V>.TableWidget, Ta
     public static final int SCROLLABLE = 0x1;
     public static final int PAGEABLE   = 0x2;
 
-    private class TableWidget extends ComplexPanel
+    class TableWidget extends ComplexPanel
     {
         private Element _headerDiv;
         private Element _bodyDiv;
