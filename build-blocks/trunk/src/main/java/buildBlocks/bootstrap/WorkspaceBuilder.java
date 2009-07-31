@@ -105,6 +105,7 @@ public class WorkspaceBuilder extends Builder implements IOUtils.SyamlHandler
         if (buildParams().length == 1 || pc.needToBuild())
             return true;
 
+        // buildParams[0] is the workspace name, the rest are project names
         for (int i = 1; i < buildParams().length; i++)
         {
             ProjectModel prj = _projectMap.get(buildParams()[i]);
