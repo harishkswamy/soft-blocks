@@ -75,6 +75,13 @@ public class IOUtils
         void endOfFile();
     }
 
+    public interface ScsvHandler
+    {
+        void handleLine(List<String> tokens) throws Exception;
+
+        void endOfFile();
+    }
+
     public interface SyamlHandler
     {
         void handleMapping(String key, String value, int level, int line);
@@ -229,6 +236,26 @@ public class IOUtils
             public void handleLine(String line) throws Exception
             {
                 handler.handleLine(Utils.splitQuoted(line, ','));
+            }
+
+            public void endOfFile()
+            {
+                handler.endOfFile();
+            }
+        });
+    }
+
+    /**
+     * Reads semi-colon separated values encoded in UTF-8 format and passes the list of values in each line to the provided
+     * {@link ScsvHandler}.
+     */
+    public static void readScsvURL(URL url, final ScsvHandler handler)
+    {
+        readCharURL(url, new LineHandler()
+        {
+            public void handleLine(String line) throws Exception
+            {
+                handler.handleLine(Utils.splitQuoted(line, ';'));
             }
 
             public void endOfFile()
@@ -457,5 +484,15 @@ public class IOUtils
             pwd[i] = 0;
 
         return password;
+    }
+
+    public static void createOrEnsureFullControl(String dirPath)
+    {
+        File dir = new File(dirPath);
+
+        dir.mkdir();
+
+        if (!dir.exists() || !dir.canRead() || !dir.canWrite())
+            throw new ApplicationException("Insufficient privileges to access dir path: " + dir.getAbsolutePath());
     }
 }

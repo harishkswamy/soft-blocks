@@ -68,17 +68,24 @@ public class SqlClient
 
     public void loadSchema(Class<?> clazz, String name)
     {
-        Properties sqlProps = IOUtils.loadProperties(clazz.getResource(name + ".sql.properties"));
+        try
+        {
+            Properties sqlProps = IOUtils.loadProperties(clazz.getResource(name + ".sql.properties"));
 
-        URL url = clazz.getResource(name + '.' + _dataManager.dbId() + ".sql.properties");
+            URL url = clazz.getResource(name + '.' + _dataManager.dbId() + ".sql.properties");
 
-        if (url != null)
-            sqlProps.putAll(IOUtils.loadProperties(url));
+            if (url != null)
+                sqlProps.putAll(IOUtils.loadProperties(url));
 
-        if (_stmts == null)
-            _stmts = new HashMap<String, SqlStmt>();
+            if (_stmts == null)
+                _stmts = new HashMap<String, SqlStmt>();
 
-        _stmts.putAll(new SqlMapParser().parse(sqlProps));
+            _stmts.putAll(new SqlMapParser().parse(sqlProps));
+        }
+        catch (Exception e)
+        {
+            throw AggregateException.with(e, "Unable to load schema: " + name + ", from class: " + clazz);
+        }
     }
 
     public SqlStmt stmt(String stmtId)

@@ -18,6 +18,14 @@ public class FileWatcher
                                                                     return o1.getName().compareTo(o2.getName());
                                                                 }
                                                             };
+    public static final Comparator<File> fileAgeComparator  = new Comparator<File>()
+                                                            {
+                                                                public int compare(File f1, File f2)
+                                                                {
+                                                                    long diff = f1.lastModified() - f2.lastModified();
+                                                                    return diff > 0 ? 1 : diff < 0 ? -1 : 0;
+                                                                }
+                                                            };
 
     private File                         _watchDir;
     private int                          _fileAge;
@@ -74,7 +82,8 @@ public class FileWatcher
 
         File[] files = _watchDir.listFiles(_filter);
 
-        Arrays.sort(files, _comparator);
+        if (files != null && _comparator != null)
+            Arrays.sort(files, _comparator);
 
         return files;
     }

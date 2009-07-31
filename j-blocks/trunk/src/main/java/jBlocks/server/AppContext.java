@@ -90,7 +90,7 @@ public class AppContext
 
     public <T> T get(Class<T> key)
     {
-        return key.cast(_ctx.get(key));
+        return key == null ? null : key.cast(_ctx.get(key));
     }
 
     public <T> T get(Class<T> key, String classifier)
@@ -100,12 +100,12 @@ public class AppContext
 
     public <T> T remove(Class<T> key)
     {
-        return key.cast(_ctx.remove(key));
+        return key == null ? null : key.cast(_ctx.remove(key));
     }
 
     public <T> T remove(Class<T> key, String classifier)
     {
-        return key.cast(_ctx.remove(new Key(key, classifier)));
+        return key == null ? null : key.cast(_ctx.remove(new Key(key, classifier)));
     }
 
     public <T> void put(Class<T> key, T value)
