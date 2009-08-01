@@ -14,11 +14,11 @@
 
 package jBlocks.server;
 
+import jBlocks.shared.SharedUtils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -26,87 +26,13 @@ import java.util.Properties;
  * @author Harish Krishnaswamy
  * @version $Id: BuildUtils.java,v 1.6 2005/10/06 21:59:25 harishkswamy Exp $
  */
-public class Utils
+public class Utils extends SharedUtils
 {
-    public static List<String> splitQuoted(String str, char delimiter)
-    {
-        List<String> tokens = new ArrayList<String>();
-
-        if (isBlank(str))
-            return tokens;
-
-        StringBuffer sb = new StringBuffer(str);
-
-        int start = 0, ch;
-        boolean quoted = false;
-
-        for (int i = 0; i < sb.length(); i++)
-        {
-            ch = sb.charAt(i);
-
-            if (ch == '"')
-            {
-                quoted = !quoted;
-                continue;
-            }
-
-            if (quoted)
-                continue;
-
-            if (ch == delimiter)
-            {
-                tokens.add(strip(sb.substring(start, i).trim(), "\"").replaceAll("\"\"", "\""));
-                start = i + 1;
-            }
-        }
-
-        tokens.add(strip(sb.substring(start).trim(), "\"").replaceAll("\"\"", "\""));
-
-        return tokens;
-    }
-
-    public static boolean isBlank(String value)
-    {
-        if (value == null || value.trim().length() == 0)
-            return true;
-
-        return false;
-    }
-
-    /**
-     * Strips leading and trailing characters that match the provided strip string. This differs from trim in that this
-     * method only strips the first leading occurance and the last trailing occurance. For example
-     * <code>strip("##123.###", "#")</code> will return <code>#123.##</code>.
-     */
-    public static String strip(String str, String strip)
-    {
-        if (str.startsWith(strip))
-            str = str.substring(strip.length());
-
-        if (str.endsWith(strip))
-            str = str.substring(0, str.length() - strip.length());
-
-        return str;
-    }
-
-    public static String initCaps(String str)
-    {
-        return str.substring(0, 1).toUpperCase() + str.substring(1);
-    }
-
     public static int getIntProperty(Properties props, String key, int defValue)
     {
         String value = props.getProperty(key);
 
         return toInt(value, defValue);
-    }
-
-    public static int toInt(String val, int defaultValue)
-    {
-        if (val == null || val.trim().length() == 0)
-            return 0;
-
-        return Integer.parseInt(val);
     }
 
     public static Locale getLocale(String localeStr)
@@ -122,21 +48,6 @@ public class Utils
             return new Locale(parts[0], parts[1]);
         else
             return new Locale(parts[0], parts[1], parts[2]);
-    }
-
-    public static String trim(String str, String trim)
-    {
-        int start = 0;
-
-        while (str.startsWith(trim, start))
-            start += trim.length();
-
-        str = str.substring(start);
-
-        while (str.endsWith(trim))
-            str = str.substring(0, str.length() - trim.length());
-
-        return str;
     }
 
     public static Properties loadProperties(File file, Properties defaults)
