@@ -13,7 +13,7 @@
 // limitations under the License.
 package gwtBlocks.client.views;
 
-import jBlocks.shared.StringUtils;
+import jBlocks.shared.SharedUtils;
 
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Element;
@@ -186,7 +186,7 @@ public class WidgetFactory
 
         separator.setStylePrimaryName("gbk-buttonGroupSeparator");
 
-        if (!StringUtils.isEmpty(styleName))
+        if (!SharedUtils.isBlank(styleName))
             separator.addStyleDependentName(styleName);
 
         return separator;

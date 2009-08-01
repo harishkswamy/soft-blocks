@@ -16,7 +16,7 @@ package gwtBlocks.client.views;
 import static com.google.gwt.user.client.ui.HasHorizontalAlignment.*;
 import static com.google.gwt.user.client.ui.HasVerticalAlignment.*;
 
-import jBlocks.shared.StringUtils;
+import jBlocks.shared.SharedUtils;
 
 import com.google.gwt.user.client.ui.HTMLTable;
 import com.google.gwt.user.client.ui.Widget;
@@ -166,7 +166,7 @@ abstract class HTMLTableBuilder<B extends HTMLTableBuilder<B, T>, T extends HTML
      */
     public B styleT(String styleName)
     {
-        if (!StringUtils.isEmpty(styleName))
+        if (!SharedUtils.isBlank(styleName))
             _table.setStylePrimaryName(styleName);
 
         return builder();
@@ -388,7 +388,7 @@ abstract class HTMLTableBuilder<B extends HTMLTableBuilder<B, T>, T extends HTML
      */
     public B styleC(String styleName)
     {
-        if (!StringUtils.isEmpty(styleName))
+        if (!SharedUtils.isBlank(styleName))
             _table.getCellFormatter().setStyleName(_row, _col, styleName);
 
         return builder();
@@ -485,7 +485,7 @@ abstract class HTMLTableBuilder<B extends HTMLTableBuilder<B, T>, T extends HTML
      */
     public B styleR(String styleName)
     {
-        if (!StringUtils.isEmpty(styleName))
+        if (!SharedUtils.isBlank(styleName))
             _table.getRowFormatter().setStylePrimaryName(_row, styleName);
 
         return builder();
@@ -496,7 +496,7 @@ abstract class HTMLTableBuilder<B extends HTMLTableBuilder<B, T>, T extends HTML
      */
     public B removeRowStyle(String styleName)
     {
-        if (!StringUtils.isEmpty(styleName))
+        if (!SharedUtils.isBlank(styleName))
             _table.getRowFormatter().removeStyleName(_row,
                 _table.getRowFormatter().getStylePrimaryName(_row) + '-' + styleName);
 

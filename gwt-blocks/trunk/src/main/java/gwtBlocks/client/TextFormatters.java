@@ -13,7 +13,7 @@
 // limitations under the License.
 package gwtBlocks.client;
 
-import jBlocks.shared.StringUtils;
+import jBlocks.shared.SharedUtils;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -65,7 +65,7 @@ public class TextFormatters
 
         public T parse(String value) throws FormatterException
         {
-            if (StringUtils.isEmpty(value))
+            if (SharedUtils.isBlank(value))
                 return null;
 
             try
@@ -135,7 +135,7 @@ public class TextFormatters
 
         public Date parse(String text) throws FormatterException
         {
-            return StringUtils.isEmpty(text) ? null : _formatter.parse(text);
+            return SharedUtils.isBlank(text) ? null : _formatter.parse(text);
         }
 
         @Override

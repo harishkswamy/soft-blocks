@@ -14,7 +14,7 @@
 package gwtBlocks.client.views;
 
 import gwtBlocks.shared.models.InputModel;
-import jBlocks.shared.StringUtils;
+import jBlocks.shared.SharedUtils;
 
 import com.google.gwt.user.client.ui.HTML;
 
@@ -55,7 +55,7 @@ public class DynamicHTMLView<M extends InputModel<V>, V> extends InputView<HTML,
     {
         String text = getModelValue();
 
-        if (_blankValue != null && StringUtils.isEmpty(text))
+        if (_blankValue != null && SharedUtils.isBlank(text))
             getWidget().setHTML(_blankValue);
         else
             getWidget().setHTML(_prefix + text + _suffix);
