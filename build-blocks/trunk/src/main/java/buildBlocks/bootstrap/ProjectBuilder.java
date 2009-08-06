@@ -1,6 +1,7 @@
 package buildBlocks.bootstrap;
 
 import java.net.URLClassLoader;
+import java.util.Date;
 
 import buildBlocks.Project;
 
@@ -70,7 +71,8 @@ public final class ProjectBuilder extends Builder
 
         long end = System.currentTimeMillis();
 
-        System.out.println(String.format("%s built successfully in %ss.", _project.name(), (end - start) / 1000.0));
+        System.out.println(String.format("%s built successfully in %ss at %s.", _project.name(),
+            (end - start) / 1000.0, new Date()));
         System.out.println();
     }
 
