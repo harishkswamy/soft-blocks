@@ -156,7 +156,7 @@ public class JavaModule<P extends Project<? extends JavaLayout>> extends Module<
         compiler().compile(l.mainJavaPath(), mainClasspath(), l.targetMainBinPath());
 
         new FileTask(l.mainJavaPath()).exclude(".*\\.java").copyToDir(l.targetMainBinPath(), false).reset(
-            l.mainResourcePath()).copyToDir(l.targetMainBinPath(), false);
+            l.mainResourcePath()).exclude((String) null).copyToDir(l.targetMainBinPath(), false);
     }
 
     @TaskInfo(desc = "Builds and runs the test suite for the project.", deps = { "compile" })
