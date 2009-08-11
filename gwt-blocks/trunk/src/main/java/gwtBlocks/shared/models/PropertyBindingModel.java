@@ -21,7 +21,7 @@ package gwtBlocks.shared.models;
  */
 public abstract class PropertyBindingModel<V> extends InputModel<V>
 {
-    protected PropertyBindingModel(String key, BeanBindingModel<?> parent)
+    protected PropertyBindingModel(String key, CompositeModel<?> parent)
     {
         super(key, parent);
     }
