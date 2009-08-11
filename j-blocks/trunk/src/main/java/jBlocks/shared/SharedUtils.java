@@ -89,7 +89,7 @@ public class SharedUtils
     {
         return isBlank(val) ? defaultValue : Integer.parseInt(val);
     }
-    
+
     public static Integer toInteger(String val)
     {
         return isBlank(val) ? null : new Integer(val.trim());
@@ -113,5 +113,27 @@ public class SharedUtils
     public static final String toString(Object obj)
     {
         return obj == null || isBlank(obj.toString()) ? null : obj.toString().trim();
+    }
+
+    public static String leftPad(Object obj, char pad, int len)
+    {
+        if (obj == null)
+            return null;
+
+        String str = obj.toString();
+
+        int padLen = len - str.length();
+
+        if (padLen <= 0)
+            return str;
+
+        StringBuilder b = new StringBuilder();
+
+        for (int i = 0; i < padLen; i++)
+            b.append(pad);
+
+        b.append(str);
+
+        return b.toString();
     }
 }
