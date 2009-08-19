@@ -164,16 +164,18 @@ public class ReflectUtils
     }
 
     /**
-     * Searches for a matching method in this class and all super classes.
+     * Searches for a matching method of any visibility in this class and all super classes.
      * 
-     * @return Public method that match the requested signature.
+     * @return Method that match the requested signature.
+     * @throws IllegalArgumentException
+     *             If no match is found.
      */
     public static Method findMethod(Class<?> targetClass, String methodName, Class<?>... argTypes)
     {
         if (argTypes == null)
             argTypes = new Class[0];
 
-        Method[] methods = targetClass.getMethods();
+        Method[] methods = targetClass.getDeclaredMethods();
 
         for (int i = 0; i < methods.length; i++)
         {
@@ -184,12 +186,15 @@ public class ReflectUtils
                 return methods[i];
         }
 
+        if (targetClass.getSuperclass() != null)
+            return findMethod(targetClass.getSuperclass(), methodName, argTypes);
+
         throw new IllegalArgumentException("Unable to find method " + targetClass + "." + methodName + "("
             + typesToString(argTypes) + ")");
     }
 
     /**
-     * Invokes the provided method on the provided target object with the provided arguments.
+     * Finds the the provided method on the target object and invokes it with the provided arguments.
      * 
      * @return Returns the result of the method invocation.
      */

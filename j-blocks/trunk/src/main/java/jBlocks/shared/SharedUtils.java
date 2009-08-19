@@ -136,4 +136,30 @@ public class SharedUtils
 
         return b.toString();
     }
+
+    /**
+     * Parses a CSS format string and returns a list of name value pairs in the form of an array.
+     * <p>
+     * For example, if the input string is "vertical-align: bottom; min-height: 65;" then the returned list will contain
+     * the following 2 string arrays in that order.
+     * <ol>
+     * <li>[vertical-align, bottom]</li>
+     * <li>[min-height, 65]</li>
+     * </ol>
+     * <p>
+     * As it is evident from the above example, this method works for any string in the CSS format and it does not check
+     * for CSS validity.
+     */
+    public static List<String[]> parseCssStyles(String styles)
+    {
+        List<String[]> styleList = new ArrayList<String[]>();
+
+        if (styles == null)
+            return styleList;
+
+        for (String attr : styles.trim().split("\\s*;\\s*"))
+            styleList.add(attr.split("\\s*:\\s*"));
+
+        return styleList;
+    }
 }
