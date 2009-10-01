@@ -106,7 +106,7 @@ public class IOUtils
         }
     }
 
-    public static URL toUrl(String urlStr)
+    public static URL toURL(String urlStr)
     {
         try
         {
