@@ -102,7 +102,19 @@ public class IOUtils
         }
         catch (MalformedURLException e)
         {
-            throw AggregateException.with(e);
+            throw AggregateException.with(e, "Unable to create URL for file: " + file);
+        }
+    }
+
+    public static URL toUrl(String urlStr)
+    {
+        try
+        {
+            return new URL(urlStr);
+        }
+        catch (MalformedURLException e)
+        {
+            throw AggregateException.with(e, "Unable to create URL from path: " + urlStr);
         }
     }
 
@@ -246,8 +258,8 @@ public class IOUtils
     }
 
     /**
-     * Reads semi-colon separated values encoded in UTF-8 format and passes the list of values in each line to the provided
-     * {@link ScsvHandler}.
+     * Reads semi-colon separated values encoded in UTF-8 format and passes the list of values in each line to the
+     * provided {@link ScsvHandler}.
      */
     public static void readScsvURL(URL url, final ScsvHandler handler)
     {
