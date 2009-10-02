@@ -347,6 +347,7 @@ public class IOUtils
      * definitions must end each line, except the last line, with a backslash '\' character
      * <li>The attribute key and value must be separated by an '=' character
      * <li>Keys and values that contain the '=' character must be enclosed in double-quotes '"'
+     * <li>Lines starting with a '#' character are ignored
      * </ul>
      */
     public static void readAttributesURL(URL url, final AttributesHandler handler)
