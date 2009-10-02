@@ -89,6 +89,13 @@ public class IOUtils
         void endOfFile();
     }
 
+    public interface AttributesHandler
+    {
+        void handleAttribute(String key, String value);
+
+        void endOfFile();
+    }
+
     private IOUtils()
     {
         // Static class
@@ -321,6 +328,53 @@ public class IOUtils
                 int dLevel = (col - pCol) / _spaces;
 
                 return _level += dLevel;
+            }
+
+            public void endOfFile()
+            {
+                handler.endOfFile();
+            }
+        });
+    }
+
+    /**
+     * Reads an attributes file encoded in UTF-8 format and passes the key, value pairs to the provided
+     * {@link AttributesHandler} in the order it is defined.
+     * <p>
+     * Attributes must be defined as follows.
+     * <ul>
+     * <li>The attributes file is a line-based file where each line defines an atttribute. Multi-line attribute
+     * definitions must end each line, except the last line, with a backslash '\' character
+     * <li>The attribute key and value must be separated by an '=' character
+     * <li>Keys and values that contain the '=' character must be enclosed in double-quotes '"'
+     * </ul>
+     */
+    public static void readAttributesURL(URL url, final AttributesHandler handler)
+    {
+        readCharURL(url, new LineHandler()
+        {
+            private StringBuilder _line = new StringBuilder();
+
+            public void handleLine(String line) throws Exception
+            {
+                line = line.trim();
+
+                if (line.startsWith("#"))
+                    return;
+
+                if (line.endsWith("\\"))
+                    _line.append(line.subSequence(0, line.length() - 1));
+
+                else
+                {
+                    _line.append(line);
+
+                    List<String> attr = Utils.splitQuoted(_line.toString(), '=');
+
+                    handler.handleAttribute(attr.get(0), attr.get(1));
+
+                    _line.delete(0, _line.length());
+                }
             }
 
             public void endOfFile()
