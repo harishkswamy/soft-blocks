@@ -360,7 +360,7 @@ public class IOUtils
             {
                 line = line.trim();
 
-                if (line.startsWith("#"))
+                if (line.startsWith("#") || line.length() == 0)
                     return;
 
                 if (line.endsWith("\\"))
