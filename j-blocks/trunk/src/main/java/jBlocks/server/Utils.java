@@ -17,8 +17,11 @@ package jBlocks.server;
 import jBlocks.shared.SharedUtils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 import java.util.Properties;
 
@@ -50,13 +53,13 @@ public class Utils extends SharedUtils
             return new Locale(parts[0], parts[1], parts[2]);
     }
 
-    public static Properties loadProperties(File file, Properties defaults)
+    public static Properties loadProperties(URL url, Properties defaults)
     {
-        FileInputStream inputStream = null;
+        InputStream inputStream = null;
 
         try
         {
-            inputStream = new FileInputStream(file);
+            inputStream = url.openStream();
 
             Properties props = new Properties(defaults);
             props.load(inputStream);
@@ -65,7 +68,7 @@ public class Utils extends SharedUtils
         }
         catch (IOException e)
         {
-            throw AggregateException.with("Unable to load properties from file: " + file, e);
+            throw AggregateException.with("Unable to load properties from : " + url, e);
         }
         finally
         {
@@ -78,6 +81,46 @@ public class Utils extends SharedUtils
             {
             }
         }
+    }
+
+    public static Properties loadProperties(File file, Properties defaults)
+    {
+        try
+        {
+            return loadProperties(file.toURL(), defaults);
+        }
+        catch (Exception e)
+        {
+            throw AggregateException.with("Unable to load properties from file: " + file, e);
+        }
+    }
+
+    public static String getSHA1(byte[] data)
+    {
+        try
+        {
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+
+            return convertBytesToString(md.digest(data));
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            throw new Error(e);
+        }
+    }
+
+    private static String convertBytesToString(byte[] value)
+    {
+        StringBuilder b = new StringBuilder(value.length * 2);
+
+        for (int i = 0; i < value.length; i++)
+        {
+            int c = value[i] & 0xff;
+            b.append(Integer.toString(c >> 4, 16));
+            b.append(Integer.toString(c & 0xf, 16));
+        }
+
+        return b.toString();
     }
 
     private Utils()

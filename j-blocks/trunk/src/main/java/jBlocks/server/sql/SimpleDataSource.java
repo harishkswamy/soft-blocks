@@ -38,13 +38,13 @@ import org.slf4j.LoggerFactory;
  */
 public class SimpleDataSource implements DataSource
 {
-    private static final Logger            _logger   = LoggerFactory.getLogger(SimpleDataSource.class);
+    private static final Logger _logger   = LoggerFactory.getLogger(SimpleDataSource.class);
 
-    private static final Queue<Connection> _connPool = new ConcurrentLinkedQueue<Connection>();
+    private Queue<Connection>   _connPool = new ConcurrentLinkedQueue<Connection>();
 
-    private String                         _jdbcUrl;
-    private Properties                     _jdbcProps;
-    private boolean                        _shutdown;
+    private String              _jdbcUrl;
+    private Properties          _jdbcProps;
+    private boolean             _shutdown;
 
     public SimpleDataSource(String jdbcDriverClassName, String jdbcUrl, Properties jdbcProps)
     {
