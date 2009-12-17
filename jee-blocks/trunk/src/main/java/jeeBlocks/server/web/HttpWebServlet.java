@@ -2,6 +2,7 @@ package jeeBlocks.server.web;
 
 import static jBlocks.server.Messages.*;
 
+import jBlocks.server.AggregateException;
 import jBlocks.server.AppContext;
 import jBlocks.server.FeedbackException;
 import jBlocks.server.IOUtils;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
  * 
  * @author hkrishna
  */
+@SuppressWarnings("serial")
 public abstract class HttpWebServlet extends HttpServlet
 {
     private static String       FORBIDDEN_ICON_NAME = "forbidden";
@@ -60,17 +62,17 @@ public abstract class HttpWebServlet extends HttpServlet
         }
         catch (SecurityException e)
         {
-            _logger.error("Unable to service HTTP request due to security error.", e);
+            _logger.error("", AggregateException.with(e, "Unable to service HTTP request due to security error."));
             writeResponse(resp, getExceptionHTML(req, forbiddenTitle, FORBIDDEN_ICON_NAME, forbiddenMessage));
         }
         catch (FeedbackException e)
         {
-            _logger.error("Unable to service HTTP request due to application error.", e);
+            _logger.error("", AggregateException.with(e, "Unable to service HTTP request due to application error."));
             writeResponse(resp, getExceptionHTML(req, alertTitle, WARNING_ICON_NAME, e.getLocalizedMessage()));
         }
         catch (Throwable e)
         {
-            _logger.error("Unable to service HTTP request due to unknown error.", e);
+            _logger.error("", AggregateException.with(e, "Unable to service HTTP request due to unknown error."));
             writeResponse(resp, getExceptionHTML(req, errorTitle, ERROR_ICON_NAME, errorMessage));
         }
     }
