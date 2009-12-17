@@ -2,6 +2,8 @@ package buildBlocks;
 
 import static buildBlocks.BuildCtx.*;
 
+import jBlocks.server.Utils;
+
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -12,8 +14,6 @@ import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * @author hkrishna
@@ -58,7 +58,7 @@ public class BuildUtils
         in.close();
 
         byte[] data = buff.toByteArray();
-        String chkSum = getSHA1(data);
+        String chkSum = Utils.getSHA1(data);
 
         if (sha1Chksum == null)
             System.out.println("SHA1 checksum: " + chkSum);
@@ -73,34 +73,6 @@ public class BuildUtils
         }
 
         return BuildUtils.writeFile(targetFile, data);
-    }
-
-    private static String getSHA1(byte[] data)
-    {
-        try
-        {
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-
-            return convertBytesToString(md.digest(data));
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            throw new Error(e);
-        }
-    }
-
-    private static String convertBytesToString(byte[] value)
-    {
-        StringBuilder b = new StringBuilder(value.length * 2);
-
-        for (int i = 0; i < value.length; i++)
-        {
-            int c = value[i] & 0xff;
-            b.append(Integer.toString(c >> 4, 16));
-            b.append(Integer.toString(c & 0xf, 16));
-        }
-
-        return b.toString();
     }
 
     public static URLClassLoader newClassLoader(String classpath)

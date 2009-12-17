@@ -12,5 +12,5 @@
 	<classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar"/>
 	<classpathentry kind="lib" path="C:/Software/VersionControl/SVNKit/svnkit-1.2.2.5405/svnkit.jar" sourcepath="C:/Software/VersionControl/SVNKit/svnkit-1.2.2.5405/svnkitsrc.zip"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/code/soft-blocks/j-blocks/1.0.0/j-blocks-1.0.0-server.jar" sourcepath="/WORKSPACE/j-blocks"/>
-	<classpathentry kind="output" path="target/classes"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
