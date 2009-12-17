@@ -273,6 +273,9 @@ html>body .gwt-DialogBox .dialogBottomRight {
 }
 
 .gwt-Hyperlink {
+	color: #606060;
+	cursor: pointer;
+	text-decoration: underline;
 }
 
 .gwt-Image {

@@ -21,6 +21,7 @@ import java.util.Map;
 
 import com.google.gwt.i18n.client.ConstantsWithLookup;
 import com.google.gwt.user.client.Command;
+import com.google.gwt.user.client.Timer;
 import com.google.gwt.user.client.rpc.AsyncCallback;
 import com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException;
 
@@ -30,9 +31,10 @@ import com.google.gwt.user.client.rpc.IncompatibleRemoteServiceException;
 public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
 {
     private static ProcessingIndicator  _indicator;
-    private static int                  _callCount;
+    private static int                  _callCount, _sessionTimerDelay;
     private static ConstantsWithLookup  _rpcMessages;
     private static Map<String, Command> _rpcErrorCommands;
+    private static Timer                _sessionTimer;
 
     public static void setProcessingIndicator(ProcessingIndicator indicator)
     {
@@ -49,6 +51,14 @@ public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
         _rpcErrorCommands = commands;
     }
 
+    public static void startSessionTimer(Timer timer, int delay)
+    {
+        _sessionTimer = timer;
+        _sessionTimerDelay = delay;
+
+        _sessionTimer.schedule(delay);
+    }
+    
     private Barrier _barrier;
 
     public FeedbackAsyncCallback()
@@ -70,6 +80,9 @@ public abstract class FeedbackAsyncCallback<T> implements AsyncCallback<T>
             _callCount++;
         }
         _indicator.setVisible(true);
+        
+        if (_sessionTimer != null)
+            _sessionTimer.schedule(_sessionTimerDelay);
     }
 
     private void endCall()

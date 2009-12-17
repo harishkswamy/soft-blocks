@@ -13,4 +13,9 @@ public abstract class StatefulGWTWebServlet extends GWTWebServlet
         if (!getThreadLocalRequest().isRequestedSessionIdValid())
             throw new RPCMessageException("sessionExpired");
     }
+
+    public void logout()
+    {
+        ctx().logout();
+    }
 }

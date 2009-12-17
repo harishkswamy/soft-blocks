@@ -18,5 +18,5 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/j-blocks"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/build-blocks"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/jee-blocks"/>
-	<classpathentry kind="output" path="target/classes"/>
+	<classpathentry kind="output" path="bin"/>
 </classpath>
