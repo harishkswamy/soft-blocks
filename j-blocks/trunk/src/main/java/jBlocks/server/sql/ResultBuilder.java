@@ -36,11 +36,11 @@ class ResultBuilder<T> implements ResultHandler<T>
     // create duplicate objects for the same entity. This is based on the assumption that the identity column name is
     // "ID".
 
-    private static final SimpleDateFormat[] DATE_FORMATS = { new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sssss"),
-        new SimpleDateFormat("yyyy-MM-dd")              };
+    private final SimpleDateFormat[] DATE_FORMATS = { new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sssss"),
+        new SimpleDateFormat("yyyy-MM-dd")       };
 
-    private SqlStmt                         _sqlStmt;
-    private RowCallback<T>                  _rowCallback;
+    private SqlStmt                  _sqlStmt;
+    private RowCallback<T>           _rowCallback;
 
     ResultBuilder(SqlStmt sqlStmt, RowCallback<T> callback)
     {
@@ -163,7 +163,14 @@ class ResultBuilder<T> implements ResultHandler<T>
                     else if (argType == double.class)
                         argType = Double.class;
 
-                    return argType.getConstructor(String.class).newInstance(val);
+                    try
+                    {
+                        return argType.getConstructor(String.class).newInstance(val);
+                    }
+                    catch (NoSuchMethodException e)
+                    {
+                        // Continue to find overloaded methods
+                    }
                 }
             }
 
