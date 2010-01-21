@@ -5,7 +5,7 @@ package buildBlocks;
  */
 public abstract class Layout
 {
-    private String _projectPath = "";
+    private String _projectPath = "./";
     private String _source      = "src";
     private String _target      = "target";
 
@@ -21,7 +21,7 @@ public abstract class Layout
         if (name == null || name.trim().length() == 0)
             return;
 
-        _projectPath = name.endsWith("/") ? name : new StringBuilder(name).append('/').toString();
+        _projectPath = name.endsWith("/") ? name : name + '/';
     }
 
     /**
