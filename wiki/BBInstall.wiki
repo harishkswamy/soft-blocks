@@ -5,7 +5,7 @@
 Installation instructions for Build Blocks.
 
 
-= Details =
+= Instructions =
 
   # Download the binary distribution from [http://code.google.com/p/soft-blocks/downloads/list Google Code].
   # Unzip the distribution to the local file system (eg. c:\). This will create a directory - build-blocks (eg. c:\build-blocks) - which we will call "BB_HOME".
@@ -13,3 +13,7 @@ Installation instructions for Build Blocks.
     http://soft-blocks.googlecode.com/svn/wiki/home_sys_var.gif
     http://soft-blocks.googlecode.com/svn/wiki/path_sys_var.gif
   # Open in the setting.properties file under BB_HOME\lib and update the {{{local.repository.path}}} (default is `<user_home>`\.m2\repository) and {{{remote.repository.urls}}} variables.
+
+That's it! Now open a command window and type {{{bbw}}} and you should see the help info as shown in the image below, if all went well.
+
+    http://soft-blocks.googlecode.com/svn/wiki/bbw_help.gif
