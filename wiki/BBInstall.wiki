@@ -9,4 +9,5 @@ Installation instructions for Build Blocks.
 
   # Download the binary distribution from [http://code.google.com/p/soft-blocks/downloads/list Google Code].
   # Unzip the distribution to the local file system (eg. c:\). This will create a directory - build-blocks (eg. c:\build-blocks) - which we will call "home".
-  # Set the environment variables as shown in the images below http://soft-blocks.googlecode.com/svn/wiki/path_sys_var.gif
+  # Set the environment variables as shown in the images below 
+http://soft-blocks.googlecode.com/svn/wiki/path_sys_var.gif
