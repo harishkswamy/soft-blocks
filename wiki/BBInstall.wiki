@@ -1,0 +1,12 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+Installation instructions for Build Blocks.
+
+
+= Details =
+
+  # Download the binary distribution from [http://soft-blocks.googlecode.com/files/build-blocks-0.8.0.189-bin.zip Google Code].
+  # Unzip the distribution to the local file system (eg. c:\). This will create a directory - build-blocks (eg. c:\build-blocks) - which we will call "home".
+  # 
