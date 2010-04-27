@@ -1,10 +1,5 @@
 #summary Build Blocks installation instructions
 
-= Introduction =
-
-Installation instructions for Build Blocks.
-
-
 = Instructions =
 
   # Download the binary distribution from [http://code.google.com/p/soft-blocks/downloads/list Google Code].
