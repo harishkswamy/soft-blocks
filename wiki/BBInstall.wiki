@@ -9,6 +9,6 @@
     http://soft-blocks.googlecode.com/svn/wiki/path_sys_var.gif
   # Open in the setting.properties file under BB_HOME\lib and update the {{{local.repository.path}}} (default is `<user_home>`\.m2\repository) and {{{remote.repository.urls}}} variables.
 
-That's it! Now open a command window and type {{{bbw}}} and you should see the help info as shown in the image below, if all went well.
+  That's it! Now open a command window and type {{{bbw}}} and you should see the help info as shown in the image below, if all went well.
 
     http://soft-blocks.googlecode.com/svn/wiki/bbw_help.gif
