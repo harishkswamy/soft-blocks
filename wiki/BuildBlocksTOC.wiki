@@ -1,4 +1,5 @@
   * [BuildBlocks Build Blocks]
     * [BBIntro Introduction]
+    * [BBInstall Installation Instructions]
     * [BBDesignDoc Design Doc]
     * [BBUserGuide User Guide]
