@@ -7,7 +7,7 @@
   # Set the environment variables as shown in the images below 
     http://soft-blocks.googlecode.com/svn/wiki/home_sys_var.gif
     http://soft-blocks.googlecode.com/svn/wiki/path_sys_var.gif
-  # Open in the setting.properties file under BB_HOME\lib and update the {{{local.repository.path}}} (default is `<user_home>`\.m2\repository) and {{{remote.repository.urls}}} variables.
+  # Open in the setting.properties file under BB_HOME\lib and update the {{{local.repository.path}}} (default is `<user_home>`\.m2\repository) and {{{remote.repository.urls}}} variables. The remote URLs can be a comma-separated list of URLs that the builder will search for dependencies.
 
 That's it! Now open a command window and type {{{bbw}}} and you should see the help info as shown in the image below, if all went well.
 
