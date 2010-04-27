@@ -11,4 +11,4 @@
 
   That's it! Now open a command window and type {{{bbw}}} and you should see the help info as shown in the image below, if all went well.
 
-    http://soft-blocks.googlecode.com/svn/wiki/bbw_help.gif
+      http://soft-blocks.googlecode.com/svn/wiki/bbw_help.gif
