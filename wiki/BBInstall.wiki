@@ -1,6 +1,5 @@
-#sidebar BuildBlocksTOC
-
 #summary Build Blocks installation instructions
+#sidebar BuildBlocksTOC
 
 = Instructions =
 
