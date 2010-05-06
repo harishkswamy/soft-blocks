@@ -5,7 +5,7 @@
 
   # Download the binary distribution from [http://code.google.com/p/soft-blocks/downloads/list Google Code].
   # Unzip the distribution to the local file system (eg. {{{C:\}}}). This will create a directory - {{{build-blocks}}} (eg. {{{C:\build-blocks}}}) - which we will call "BB_HOME".
-  # Set the environment variables as shown in the images below 
+  # Set the environment variables shown in the images below
     http://soft-blocks.googlecode.com/svn/wiki/java_home_sys_var.gif
     http://soft-blocks.googlecode.com/svn/wiki/home_sys_var.gif
     http://soft-blocks.googlecode.com/svn/wiki/path_sys_var.gif
