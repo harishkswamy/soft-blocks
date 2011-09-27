@@ -70,7 +70,8 @@ public class SqlClient
     {
         try
         {
-            Properties sqlProps = IOUtils.loadProperties(clazz.getResource(name + ".sql.properties"));
+            Properties sqlProps = IOUtils.loadProperties(clazz
+                    .getResource(name + ".sql.properties"));
 
             URL url = clazz.getResource(name + '.' + _dataManager.dbId() + ".sql.properties");
 
@@ -84,7 +85,8 @@ public class SqlClient
         }
         catch (Exception e)
         {
-            throw AggregateException.with(e, "Unable to load schema: " + name + ", from class: " + clazz);
+            throw AggregateException.with(e, "Unable to load schema: " + name + ", from class: "
+                    + clazz);
         }
     }
 
@@ -175,8 +177,9 @@ public class SqlClient
     }
 
     /**
-     * This method will run the provided task as a unit of work within a DB transaction. This method will try to recover
-     * from broken DB connections and throws an {@link Error} when the recovery fails.
+     * This method will run the provided task as a unit of work within a DB
+     * transaction. This method will try to recover from broken DB connections
+     * and throws an {@link Error} when the recovery fails.
      * 
      * @throws Error
      *             when the DB connection is broken and recovery attempts fail.
@@ -202,7 +205,7 @@ public class SqlClient
         if (session.isInTransaction())
             session = newSession();
 
-        Exception te = null;
+        AggregateException te = null;
         boolean committed = false;
 
         try
@@ -217,8 +220,7 @@ public class SqlClient
         }
         catch (Exception e)
         {
-            te = e;
-            throw AggregateException.with(e, "DB transaction failed.");
+            throw te = AggregateException.with(e, "DB transaction failed.");
         }
         finally
         {
@@ -229,8 +231,8 @@ public class SqlClient
             catch (Exception e)
             {
                 if (attempt > 1)
-                    throw AggregateException.with(
-                        "DB transaction error. The database or the network is possibly down.", te, e);
+                    throw AggregateException.with(AggregateException.with(te, e.toString()),
+                            "DB transaction error. The database or the network is possibly down.");
 
                 discardSession();
 
@@ -241,8 +243,9 @@ public class SqlClient
                 }
                 catch (Exception e2)
                 {
-                    throw new Error(AggregateException.with("DB transaction failed after two attempts.", e, e2)
-                        .getLocalizedMessage(), te);
+                    throw AggregateException.with(AggregateException.with(AggregateException.with(
+                            te, e.toString()), e2.toString()),
+                            "DB transaction failed after two attempts.");
                 }
             }
         }
