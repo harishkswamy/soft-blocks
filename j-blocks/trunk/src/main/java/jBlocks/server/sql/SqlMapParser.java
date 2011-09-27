@@ -38,9 +38,9 @@ class SqlMapParser
     {
         for (Object keyObj : sqlProps.keySet())
         {
-            String key = ((String) keyObj).toLowerCase();
+            String key = (String) keyObj, keylc = key.toLowerCase();
 
-            if (key.endsWith(CLASS))
+            if (keylc.endsWith(CLASS))
             {
                 SqlMap sqlMap = getSqlMap(key);
                 sqlMap.setClassName(sqlProps.getProperty(key));
@@ -48,16 +48,18 @@ class SqlMapParser
                 continue;
             }
 
+            int dynSqlIdx = keylc.indexOf(DYNAMIC_SQL);
+
             // Ignore all other properties, if exists
             //
-            if (!(key.endsWith(SQL) || key.endsWith(DYNAMIC_SQL)))
+            if (!(keylc.endsWith(SQL) || dynSqlIdx > -1))
                 continue;
 
             SqlStmt sqlStmt = newSqlStmt(key);
             String sql = sqlProps.getProperty(key);
 
-            if (key.endsWith(DYNAMIC_SQL))
-                key = key.replaceFirst(DYNAMIC_SQL, SQL);
+            if (dynSqlIdx > -1)
+                key = key.substring(0, dynSqlIdx) + SQL;
 
             if (sql.toLowerCase().startsWith(SELECT))
                 parseSelectSql(key, sql, sqlStmt);
