@@ -24,127 +24,25 @@ public class AggregateException extends RuntimeException
 {
     private static final long serialVersionUID = 1L;
 
-    /**
-     * Wraps and returns the provided exception in AggregateException.
-     */
-    public static AggregateException with(Throwable t)
+    public static AggregateException with(Throwable e)
     {
-        return with(t, null);
+        if (e instanceof AggregateException)
+            return (AggregateException) e;
+
+        return new AggregateException(null, e);
     }
 
-    /**
-     * Wraps the provided exceptions from the first to last and finally with the provided message.
-     */
-    public static AggregateException with(String message, Throwable... ts)
+    public static AggregateException with(Throwable e, String msg)
     {
-        AggregateException ae = null;
-        
-        for (Throwable t : ts)
-        {
-            if (t == null)
-                continue;
+        if (msg == null)
+            return with(e);
 
-            if (ae == null)
-                ae = with(t);
-            else if (t instanceof AggregateException)
-                ae = with(ae, t.getLocalizedMessage());
-            else
-                ae = with(ae, t.toString());
-        }
-
-        return with(ae, message);
+        return new AggregateException(msg, e);
     }
 
-    /**
-     * Wraps the provided exception with the provided message. 
-     */
-    public static AggregateException with(Throwable t, String message)
+    private AggregateException(String message, Throwable cause)
     {
-        if (t instanceof AggregateException)
-        {
-            AggregateException ae = (AggregateException) t;
-
-            if (message != null)
-                ae.setMessage(message + "\nCause: " + ae.getLocalizedMessage());
-
-            return ae;
-        }
-
-        StringBuilder msgBuffer = new StringBuilder();
-        t = getRootCause(t, msgBuffer);
-        String msgs = msgBuffer.toString();
-        msgs = (message == null) ? msgs : (message + "\nCause: " + msgs);
-
-        if (t instanceof AggregateException)
-        {
-            AggregateException ae = (AggregateException) t;
-            ae.setMessage(msgs);
-            return ae;
-        }
-        else
-            return new AggregateException(t, msgs);
-    }
-
-    private static Throwable getRootCause(Throwable t, StringBuilder msgbuffer)
-    {
-        msgbuffer.append(t.getClass().getName() + ": " + t.getLocalizedMessage());
-
-        while (t.getCause() != null)
-        {
-            t = t.getCause();
-            msgbuffer.append("\nCause: " + t.getClass().getName() + ": " + t.getLocalizedMessage());
-        }
-
-        return t;
-    }
-
-    // ~ Instance Variables
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    private String    _message;
-    private Throwable _rootCause;
-
-    // ~ Constructors
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    private AggregateException(Throwable t)
-    {
-        setCause(t);
-    }
-
-    private AggregateException(Throwable t, String msg)
-    {
-        setCause(t);
-        _message = msg;
-    }
-
-    private void setCause(Throwable t)
-    {
-        _rootCause = t;
-        setStackTrace(t.getStackTrace());
-    }
-
-    void setMessage(String msg)
-    {
-        _message = msg;
-    }
-
-    // ~ Inherited Methods
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-    /**
-     * Returns the message for this and all wrapped exceptions.
-     */
-    @Override
-    public String getMessage()
-    {
-        return _message == null ? _rootCause.getMessage() : _message;
-    }
-
-    @Override
-    public String toString()
-    {
-        return getClass().getName() + ", Root Cause: " + _rootCause.toString();
+        super(message, cause);
     }
 
     @Override
@@ -154,40 +52,56 @@ public class AggregateException extends RuntimeException
     }
 
     @Override
-    public void printStackTrace(PrintStream out)
+    public void printStackTrace(PrintStream err)
     {
-        synchronized (out)
-        {
-            if (_message != null)
-                out.println(getLocalizedMessage());
+        err.println(toString());
 
-            _rootCause.printStackTrace(out);
+        Throwable t = this, root = this;
+
+        while ((t = t.getCause()) != null)
+        {
+            err.print("Caused by: ");
+
+            if (t.getCause() == null)
+                root = t;
+            else
+                err.println(t);
         }
+
+        root.printStackTrace(err);
     }
 
     @Override
-    public void printStackTrace(PrintWriter out)
+    public void printStackTrace(PrintWriter err)
     {
-        synchronized (out)
-        {
-            if (_message != null)
-                out.println(getLocalizedMessage());
+        err.println(toString());
 
-            _rootCause.printStackTrace(out);
+        Throwable t = this, root = this;
+
+        while ((t = t.getCause()) != null)
+        {
+            err.print("Caused by: ");
+
+            if (t.getCause() == null)
+                root = t;
+            else
+                err.println(t);
         }
+
+        root.printStackTrace(err);
     }
 
     @Override
     public StackTraceElement[] getStackTrace()
     {
-        return _rootCause.getStackTrace();
-    }
+        Throwable t = this, root = this;
 
-    // ~ Public Methods
-    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        while ((t = t.getCause()) != null)
+        {
+            if (t.getCause() == null)
+                root = t;
+        }
 
-    public Throwable getRootCause()
-    {
-        return _rootCause;
+        return root.getStackTrace();
     }
 }
