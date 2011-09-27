@@ -68,7 +68,7 @@ public class Utils extends SharedUtils
         }
         catch (IOException e)
         {
-            throw AggregateException.with("Unable to load properties from : " + url, e);
+            throw AggregateException.with(e, "Unable to load properties from : " + url);
         }
         finally
         {
@@ -91,7 +91,7 @@ public class Utils extends SharedUtils
         }
         catch (Exception e)
         {
-            throw AggregateException.with("Unable to load properties from file: " + file, e);
+            throw AggregateException.with(e, "Unable to load properties from file: " + file);
         }
     }
 
