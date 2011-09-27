@@ -38,7 +38,7 @@ class SqlMapParser
     {
         for (Object keyObj : sqlProps.keySet())
         {
-            String key = (String) keyObj;
+            String key = ((String) keyObj).toLowerCase();
 
             if (key.endsWith(CLASS))
             {
@@ -59,7 +59,7 @@ class SqlMapParser
             if (key.endsWith(DYNAMIC_SQL))
                 key = key.replaceFirst(DYNAMIC_SQL, SQL);
 
-            if (sql.startsWith(SELECT))
+            if (sql.toLowerCase().startsWith(SELECT))
                 parseSelectSql(key, sql, sqlStmt);
             else
                 parseUpdateSql(key, sql, sqlStmt);
@@ -94,7 +94,7 @@ class SqlMapParser
 
     private void parseSelectSql(String key, String sql, SqlStmt sqlStmt)
     {
-        int fromIdx = sql.indexOf(FROM);
+        int fromIdx = sql.toLowerCase().indexOf(FROM);
 
         String selStr = sql.substring(0, fromIdx);
 
