@@ -14,6 +14,10 @@
 
 package jBlocks.server.sql;
 
+import java.util.List;
+
+import jBlocks.shared.SharedUtils;
+
 /**
  * @author hkrishna
  */

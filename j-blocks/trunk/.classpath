@@ -8,7 +8,7 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="var" path="M2_REPO/ch/qos/logback/logback-classic/0.9.14/logback-classic-0.9.14.jar"/>
 	<classpathentry kind="var" path="M2_REPO/ch/qos/logback/logback-core/0.9.14/logback-core-0.9.14.jar"/>
-	<classpathentry kind="var" path="M2_REPO/junit/junit/4.3.1/junit-4.3.1.jar"/>
+	<classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/slf4j/slf4j-api/1.5.6/slf4j-api-1.5.6.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/jmock/jmock/2.4.0/jmock-2.4.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/cglib/cglib-nodep/2.1_3/cglib-nodep-2.1_3.jar"/>
@@ -16,6 +16,7 @@
 	<classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-library/1.1/hamcrest-library-1.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/jmock/jmock-legacy/2.4.0/jmock-legacy-2.4.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/objenesis/objenesis/1.0/objenesis-1.0.jar"/>
+	<classpathentry kind="var" path="BB_HOME/lib/build-blocks-0.8.0.221.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/build-blocks"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

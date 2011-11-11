@@ -32,30 +32,57 @@ import java.util.Map;
  */
 class ResultBuilder<T> implements ResultHandler<T>
 {
-    // TODO : This class builds the result from the ResultSet object. This builder identity-aware, meaning it will not
-    // create duplicate objects for the same entity. This is based on the assumption that the identity column name is
+    // TODO : This class builds the result from the ResultSet object. This
+    // builder identity-aware, meaning it will not
+    // create duplicate objects for the same entity. This is based on the
+    // assumption that the identity column name is
     // "ID".
 
-    private final SimpleDateFormat[] DATE_FORMATS = { new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sssss"),
-        new SimpleDateFormat("yyyy-MM-dd")       };
+    private final SimpleDateFormat[] DATE_FORMATS = {
+            new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.sssss"), new SimpleDateFormat("yyyy-MM-dd") };
 
     private SqlStmt                  _sqlStmt;
     private RowCallback<T>           _rowCallback;
+    private Class<?>                 _modelClass;
+    private boolean                  _modelIsMap, _modelIsList;
 
+    @SuppressWarnings("unchecked")
     ResultBuilder(SqlStmt sqlStmt, RowCallback<T> callback)
     {
         _sqlStmt = sqlStmt;
         _rowCallback = callback;
+
+        _modelClass = ClassUtils.loadClass(_sqlStmt.getSqlMap().getClassName());
+
+        _modelIsMap = Map.class.isAssignableFrom(_modelClass);
+
+        if (!_modelIsMap)
+            _modelIsList = List.class.isAssignableFrom(_modelClass);
     }
 
+    @SuppressWarnings("unchecked")
     public List<T> handle(ResultSet result) throws Exception
     {
         List<T> modelList = new ArrayList<T>();
+
+        if (_modelIsList)
+            modelList.add(buildListHeader());
 
         while (result.next())
             modelList.add(getModel(result));
 
         return modelList;
+    }
+
+    @SuppressWarnings("unchecked")
+    private T buildListHeader()
+    {
+        T header = (T) ClassUtils.newInstance(_modelClass);
+
+        for (SqlField field : _sqlStmt.getFields())
+            ((List<String>) header).add(field.getPath());
+
+        return header;
     }
 
     private T getModel(ResultSet result) throws Exception
@@ -66,7 +93,7 @@ class ResultBuilder<T> implements ResultHandler<T>
     @SuppressWarnings("unchecked")
     private T newModel(ResultSet result) throws Exception
     {
-        T obj = (T) ClassUtils.newInstance(_sqlStmt.getSqlMap().getClassName());
+        T obj = (T) ClassUtils.newInstance(_modelClass);
 
         List<SqlField> fields = _sqlStmt.getFields();
 
@@ -77,6 +104,10 @@ class ResultBuilder<T> implements ResultHandler<T>
 
             if (field.requestsCallback())
                 ReflectUtils.invokeMethod(_rowCallback, field.callbackName(), obj, value);
+            else if (_modelIsMap)
+                ((Map<String, String>) obj).put(field.getPath(), value);
+            else if (_modelIsList)
+                ((List<String>) obj).add(value);
             else
                 setComplexPropertyValue(obj, field.getProperties(), value);
         }
@@ -174,18 +205,20 @@ class ResultBuilder<T> implements ResultHandler<T>
                 }
             }
 
-            return clazz.getSuperclass() == null ? null : toArgType(clazz.getSuperclass(), methodName, val);
+            return clazz.getSuperclass() == null ? null : toArgType(clazz.getSuperclass(),
+                    methodName, val);
         }
         catch (Exception e)
         {
-            throw AggregateException.with(e, "Unable to convert value: " + val + " to argument type for " + clazz + "."
-                + methodName);
+            throw AggregateException.with(e, "Unable to convert value: " + val
+                    + " to argument type for " + clazz + "." + methodName);
         }
     }
 
     private Object parseBoolean(String val)
     {
-        if ("y".equalsIgnoreCase(val) || "yes".equalsIgnoreCase(val) || "true".equalsIgnoreCase(val))
+        if ("y".equalsIgnoreCase(val) || "yes".equalsIgnoreCase(val)
+                || "true".equalsIgnoreCase(val))
             return Boolean.TRUE;
 
         return Boolean.FALSE;

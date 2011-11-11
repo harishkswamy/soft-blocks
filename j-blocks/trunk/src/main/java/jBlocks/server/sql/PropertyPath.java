@@ -14,6 +14,8 @@
 
 package jBlocks.server.sql;
 
+import jBlocks.shared.SharedUtils;
+
 /**
  * @author hkrishna
  */
@@ -21,8 +23,8 @@ class PropertyPath
 {
     protected static String[] parsePath(String path, boolean set)
     {
-        if (".".equals(path))
-            return new String[] { path };
+        if (".".equals(path) || path.startsWith("\""))
+            return new String[] { SharedUtils.trim(path, "\"") };
 
         String[] props = path.split("\\$");
 

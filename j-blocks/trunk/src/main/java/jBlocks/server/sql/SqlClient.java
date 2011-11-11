@@ -27,7 +27,87 @@ import java.util.Properties;
 import javax.sql.DataSource;
 
 /**
- * Base class to manage access to a single database.
+ * Primary interface to manage access to a single database. This class creates
+ * new {@link SqlSession sessions} as needed but these sessions will have to be
+ * ended manually after the current, executing thread is done. That means you
+ * have to call {@link #endSession()} at the end of each request in a web
+ * application, for example. Failure to do so will result in unexpected
+ * behavior. This class, however, is intended to be used as a singleton. Here's
+ * a typical usage pattern.
+ * 
+ * <pre><code>
+ * final SqlClient sqlClient = new SqlClient(&quot;jdbc/dataSourceName&quot;, &quot;myAppDb&quot;);
+ * try
+ * {
+ *     sqlClient.loadSchema(MyDao.class, &quot;MySqlStatements&quot;);
+ * 
+ *     List data = sqlClient.select(&quot;mySqlStmt&quot;, paramModelObj);
+ * 
+ *     transact(new SqlTask&lt;RetType&gt;()
+ *     {
+ *         public RetType execute()
+ *         {
+ *             sqlClient.executeUpdate(&quot;myUpdateStmt&quot;, paramModelObj);
+ *             sqlClient.executeUpdate(&quot;myDeleteStmt&quot;, paramModelObj);
+ *             sqlClient.executeUpdate(&quot;myUpdateStmt2&quot;, paramModelObj);
+ *             return sqlClient.select(&quot;mySqlStmt2&quot;, paramModelObj);
+ *         }
+ *     });
+ * }
+ * finally
+ * {
+ *     sqlClient.endSession();
+ * }
+ * </code></pre>
+ * 
+ * <p>
+ * The sql properties file is where all the SQL statements and the SQL
+ * configurations are provided. Here's the full list of properties that can be
+ * provided in the sql properties file.
+ * <ul>
+ * <li><code>&lt;name&gt;.class = &lt;fully qualified Java class that will be mapped to the SQL&gt;</code></li>
+ * <li><code>&lt;name&gt;.select-clause = &lt;select clause excluding the table columns&gt;</code></li>
+ * <li><code>&lt;name&gt;.sql = &lt;sql statement&gt;</code></li>
+ * <li><code>&lt;name&gt;.dyn-sql = &lt;dynamic sql statement&gt;</code></li>
+ * <li><code>&lt;name&gt;.[sql | dyn-sql].fetch-size = &lt;JDBC fetch size&gt;</code></li>
+ * </ul>
+ * <p>
+ * The sql statements are of 2 types - regular and dynamic. Regular sql
+ * statements can have parameters, and dynamic sql statements can have
+ * placeholders in addition to parameters as explained below.
+ * <p>
+ * Sql statement parameters are variables in the where clause specified between
+ * two <code>#</code> symbol. For example, <code>#EmpId#</code>. In this
+ * example, the framework will look for a <code>getEmpId</code> method in the
+ * <code>paramModelObj</code>, provided in the
+ * {@link #select(String, Object)} or the {@link #executeUpdate(String, Object)}
+ * methods, and substitute the value returned by the method for the parameter.
+ * There is also a special parameter form, denoted by <code>#.#</code>, that
+ * substitutes the string form of the <code>paramModelObj</code> itself for
+ * the parameter.
+ * <p>
+ * Sql statement placeholders are variables that can substitute any part of the
+ * SQL statement as opposed to the just value in the where clause. Placeholders
+ * are specified between two <code>@</code> symbols. For example,
+ * {@code <code>@Predicate@</code>} works exactly like a parameter but the
+ * <code>getPredicate</code> method can return an entire where clause built
+ * dynamically in code.
+ * <p>
+ * Here's a sample sql properties file.
+ * 
+ * <pre><code>
+ *  stmt-name.class = java.util.ArrayList
+ *  stmt-name.select-clause = select top 10
+ *   
+ *  stmt-name.select.sql = \
+ *      SELECT case_id WHERE name like '%' + #Pattern# + '%'
+ *       
+ *  stmt-name.select.dyn-sql = \
+ *      SELECT case_id FROM {@code @tblName@} \
+ *      WHERE {@code @predicate1@} and lst_updt_dtm &gt; #updtDt#
+ *       
+ *  stmt-name.select.dyn-sql.fetch-size = 100
+ * </code></pre>
  * 
  * @author hkrishna
  */
@@ -66,6 +146,18 @@ public class SqlClient
         return _dataManager;
     }
 
+    /**
+     * Loads, parses and caches the provided sql properties file.
+     * 
+     * @param clazz
+     *            The class that will be used to load the sql properties file.
+     * @param name
+     *            The simple name of the sql properties file without the
+     *            extension. The file name extension should be
+     *            <code>.sql.properties</code>. The sql properties file must
+     *            be placed in the classpath alongside the provided
+     *            <code>clazz</code>.
+     */
     public void loadSchema(Class<?> clazz, String name)
     {
         try
@@ -78,10 +170,7 @@ public class SqlClient
             if (url != null)
                 sqlProps.putAll(IOUtils.loadProperties(url));
 
-            if (_stmts == null)
-                _stmts = new HashMap<String, SqlStmt>();
-
-            _stmts.putAll(new SqlMapParser().parse(sqlProps));
+            loadSchema(sqlProps);
         }
         catch (Exception e)
         {
@@ -90,9 +179,27 @@ public class SqlClient
         }
     }
 
-    public SqlStmt stmt(String stmtId)
+    /**
+     * Parses and caches the provided sql properties.
+     * 
+     * @param sqlProps
+     */
+    public void loadSchema(Properties sqlProps)
     {
-        return _stmts.get(stmtId);
+        if (_stmts == null)
+            _stmts = new HashMap<String, SqlStmt>();
+
+        _stmts.putAll(new SqlMapParser().parse(sqlProps));
+    }
+
+    private SqlStmt stmt(String stmtId)
+    {
+        SqlStmt stmt = _stmts.get(stmtId);
+
+        if (stmt == null)
+            throw new IllegalArgumentException("SQL statement not found - " + stmtId);
+
+        return stmt;
     }
 
     private SqlSession newSession()
@@ -124,6 +231,9 @@ public class SqlClient
         sessions.remove(sessions.size() - 1).close();
     }
 
+    /**
+     * Ends all sessions created by the calling thread.
+     */
     public void endSession()
     {
         List<SqlSession> sessions = _threadSessions.get();
@@ -136,9 +246,17 @@ public class SqlClient
             session.close();
     }
 
+    /**
+     * Sets the JDBC fetch size for the provided statement.
+     * 
+     * @param stmtKey
+     *            The statement name in the sql properties file.
+     * @param size
+     *            The number of rows to fetch.
+     */
     public void setFetchSize(String stmtKey, int size)
     {
-        _stmts.get(stmtKey).setProperty("setFetchSize", size);
+        _stmts.get(stmtKey).setFetchSize(size);
     }
 
     public int selectInt(String stmtId, Object paramModel)
@@ -161,9 +279,9 @@ public class SqlClient
         return session().select(stmt(stmtId), paramModel, callback);
     }
 
-    public SqlSession addBatch(String stmtId, Object param)
+    public void addBatch(String stmtId, Object param)
     {
-        return session().addBatch(stmt(stmtId), param);
+        session().addBatch(stmt(stmtId), param);
     }
 
     public int[] executeBatch(String stmtId)
@@ -179,7 +297,7 @@ public class SqlClient
     /**
      * This method will run the provided task as a unit of work within a DB
      * transaction. This method will try to recover from broken DB connections
-     * and throws an {@link Error} when the recovery fails.
+     * and throws an {@link Exception} when the recovery fails.
      * 
      * @throws Error
      *             when the DB connection is broken and recovery attempts fail.

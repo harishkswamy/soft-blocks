@@ -14,6 +14,9 @@
 
 package jBlocks.server.sql;
 
+import jBlocks.server.Utils;
+import jBlocks.shared.SharedUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,14 +28,16 @@ import java.util.Properties;
  */
 class SqlMapParser
 {
-    private final String         CLASS       = ".class";
-    private final String         SQL         = ".sql";
-    private final String         DYNAMIC_SQL = ".dyn-sql";
-    private final String         SELECT      = "select ";
-    private final String         FROM        = " from ";
+    private final String         CLASS         = ".class";
+    private final String         SELECT_CLAUSE = ".select-clause";
+    private final String         FETCH_SIZE    = ".fetch-size";
+    private final String         SQL           = ".sql";
+    private final String         DYNAMIC_SQL   = ".dyn-sql";
+    private final String         SELECT        = "select ";
+    private final String         FROM          = " from ";
 
-    private Map<String, SqlStmt> _sqlStmts   = new HashMap<String, SqlStmt>();
-    private Map<String, SqlMap>  _sqlMaps    = new HashMap<String, SqlMap>();
+    private Map<String, SqlStmt> _sqlStmts     = new HashMap<String, SqlStmt>();
+    private Map<String, SqlMap>  _sqlMaps      = new HashMap<String, SqlMap>();
 
     Map<String, SqlStmt> parse(Properties sqlProps)
     {
@@ -41,30 +46,23 @@ class SqlMapParser
             String key = (String) keyObj, keylc = key.toLowerCase();
 
             if (keylc.endsWith(CLASS))
+                getSqlMap(key).setClassName(sqlProps.getProperty(key));
+
+            else if (keylc.endsWith(SELECT_CLAUSE))
+                getSqlMap(key).setSelectClause(sqlProps.getProperty(key));
+
+            else if (keylc.endsWith(SQL) || keylc.endsWith(DYNAMIC_SQL))
             {
-                SqlMap sqlMap = getSqlMap(key);
-                sqlMap.setClassName(sqlProps.getProperty(key));
+                SqlStmt sqlStmt = newSqlStmt(key);
+                sqlStmt.setFetchSize(Utils.getIntProperty(sqlProps, key + FETCH_SIZE, 0));
 
-                continue;
+                String sql = sqlProps.getProperty(key);
+
+                if (sql.substring(0, 7).equalsIgnoreCase(SELECT))
+                    parseSelectSql(sql, sqlStmt);
+                else
+                    parseUpdateSql(sql, sqlStmt);
             }
-
-            int dynSqlIdx = keylc.indexOf(DYNAMIC_SQL);
-
-            // Ignore all other properties, if exists
-            //
-            if (!(keylc.endsWith(SQL) || dynSqlIdx > -1))
-                continue;
-
-            SqlStmt sqlStmt = newSqlStmt(key);
-            String sql = sqlProps.getProperty(key);
-
-            if (dynSqlIdx > -1)
-                key = key.substring(0, dynSqlIdx) + SQL;
-
-            if (sql.toLowerCase().startsWith(SELECT))
-                parseSelectSql(key, sql, sqlStmt);
-            else
-                parseUpdateSql(key, sql, sqlStmt);
         }
 
         return _sqlStmts;
@@ -94,7 +92,7 @@ class SqlMapParser
         return sqlMap;
     }
 
-    private void parseSelectSql(String key, String sql, SqlStmt sqlStmt)
+    private void parseSelectSql(String sql, SqlStmt sqlStmt)
     {
         int fromIdx = sql.toLowerCase().indexOf(FROM);
 
@@ -110,41 +108,22 @@ class SqlMapParser
 
     private void parseFields(SqlStmt sqlStmt, String cols)
     {
-        int inFunc = 0;
         List<SqlField> fields = new ArrayList<SqlField>();
-        StringBuffer field = new StringBuffer();
 
-        for (int i = 0; i < cols.length(); i++)
-        {
-            char chr = cols.charAt(i);
-
-            if (chr == '(')
-                inFunc++;
-            else if (chr == ')')
-                inFunc--;
-            else if (inFunc == 0)
-            {
-                switch (chr)
-                {
-                case ',':
-                    addField(fields, field);
-                case ' ':
-                    field.delete(0, field.length());
-                    break;
-                default:
-                    field.append(chr);
-                }
-            }
-        }
-
-        addField(fields, field);
+        for (String field : SharedUtils.splitQuoted(cols, ',', true))
+            addField(fields, field);
 
         sqlStmt.setFields(fields);
     }
 
-    private void addField(List<SqlField> fields, StringBuffer field)
+    private void addField(List<SqlField> fields, String field)
     {
-        fields.add(new SqlField(camelCase(field.substring(field.indexOf(".") + 1))));
+        List<String> parts = SharedUtils.splitQuoted(field, ' ', true);
+
+        field = parts.size() > 1 ? SharedUtils.trim(parts.get(1), "\"") : camelCase(parts.get(0)
+                .substring(parts.get(0).indexOf(".") + 1));
+
+        fields.add(new SqlField(field));
     }
 
     private String camelCase(String str)
@@ -159,7 +138,7 @@ class SqlMapParser
         return cName.toString();
     }
 
-    private void parseUpdateSql(String key, String sql, SqlStmt sqlStmt)
+    private void parseUpdateSql(String sql, SqlStmt sqlStmt)
     {
         StringBuffer stmtBuf = new StringBuffer();
 

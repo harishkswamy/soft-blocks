@@ -10,6 +10,11 @@ import buildBlocks.java.jee.gwt.GWTLib;
 @ProjectInfo(group = "com.google.code.soft-blocks", id = "j-blocks", version = "1.0.0")
 public class JBlocks extends JavaProject
 {
+    public static void main(String[] args)
+    {
+        new JBlocks().execute("j:install");
+    }
+    
     public JBlocks()
     {
         super("1.5");

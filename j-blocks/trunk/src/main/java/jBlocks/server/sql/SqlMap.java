@@ -20,6 +20,7 @@ package jBlocks.server.sql;
 class SqlMap
 {
     private String _className;
+    private String _selClause;
 
     public String getClassName()
     {
@@ -31,9 +32,19 @@ class SqlMap
         _className = className;
     }
 
+    public void setSelectClause(String clause)
+    {
+        _selClause = clause;
+    }
+
+    public String getSelectClause()
+    {
+        return _selClause;
+    }
+
     @Override
     public String toString()
     {
-        return "Class Name: " + _className;
+        return "Class Name: " + _className + ", Select Clause: " + _selClause;
     }
 }

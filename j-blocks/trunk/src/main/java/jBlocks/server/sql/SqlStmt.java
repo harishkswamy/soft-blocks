@@ -26,7 +26,7 @@ import java.util.Map;
  */
 class SqlStmt
 {
-    private String              _stmt;
+    private String              _stmt, _tStmt;
     private List<SqlField>      _fields;
     private List<SqlParam>      _params;
     private List<SqlParam>      _dynParams;
@@ -35,12 +35,26 @@ class SqlStmt
 
     public String getStmt()
     {
+        if (_stmt == null)
+        {
+            _stmt = _tStmt;
+            _tStmt = null;
+            
+            if (_sqlMap != null && _sqlMap.getSelectClause() != null)
+            {
+                StringBuilder buf = new StringBuilder(_stmt);
+                buf.replace(0, 6, _sqlMap.getSelectClause());
+
+                _stmt = buf.toString();
+            }
+        }
+
         return _stmt;
     }
 
     public void setStmt(String stmt)
     {
-        _stmt = stmt;
+        _tStmt = stmt;
     }
 
     public boolean isDynamic()
@@ -88,14 +102,19 @@ class SqlStmt
         _sqlMap = sqlMap;
     }
 
-    public void setProperty(String name, Object value)
+    public void setFetchSize(int size)
+    {
+        setProperty("setFetchSize", size);
+    }
+
+    private void setProperty(String name, Object value)
     {
         if (_props == null)
             _props = new HashMap<String, Object>();
 
         _props.put(name, value);
     }
-    
+
     public void applyProperties(PreparedStatement stmt)
     {
         if (_props == null)
@@ -104,12 +123,14 @@ class SqlStmt
         for (Map.Entry<String, Object> prop : _props.entrySet())
             ReflectUtils.invokeMethod(stmt, prop.getKey(), prop.getValue());
     }
-    
+
     @Override
     public String toString()
     {
-        StringBuilder b = new StringBuilder("SQL: ").append(_stmt).append(", Fields: ").append(_fields);
-        b.append(", Parameters: ").append(_params).append(", Dynamic Parameters: ").append(_dynParams);
+        StringBuilder b = new StringBuilder("SQL: ").append(_stmt).append(", Fields: ").append(
+                _fields);
+        b.append(", Parameters: ").append(_params).append(", Dynamic Parameters: ").append(
+                _dynParams);
         return b.append(", SQL Map: ").append(_sqlMap).toString();
     }
 }

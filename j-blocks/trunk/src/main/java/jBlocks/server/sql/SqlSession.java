@@ -26,7 +26,7 @@ class SqlSession
         private boolean                         _committed;
         private Map<SqlStmt, PreparedStatement> _batchStmts;
 
-        SqlSession addBatch(SqlStmt sqlStmt, Object param)
+        void addBatch(SqlStmt sqlStmt, Object param)
         {
             try
             {
@@ -40,12 +40,11 @@ class SqlSession
 
                 setStatementParams(sqlStmt, stmt, param);
                 stmt.addBatch();
-
-                return SqlSession.this;
             }
             catch (Exception e)
             {
-                throw AggregateException.with(e, "Unable to add batch " + sqlStmt + ", Parameter: " + param);
+                throw AggregateException.with(e, "Unable to add batch " + sqlStmt + ", Parameter: "
+                        + param);
             }
         }
 
@@ -62,7 +61,8 @@ class SqlSession
 
                 for (int i = 0; i < status.length; i++)
                     if (status[i] == PreparedStatement.EXECUTE_FAILED)
-                        throw new BatchUpdateException("Batch execution failed at statement #: " + i, status);
+                        throw new BatchUpdateException("Batch execution failed at statement #: "
+                                + i, status);
 
                 return status;
             }
@@ -87,7 +87,8 @@ class SqlSession
             }
             catch (Exception e)
             {
-                throw AggregateException.with(e, "Unable to execute update " + sqlStmt + ", Parameter: " + param);
+                throw AggregateException.with(e, "Unable to execute update " + sqlStmt
+                        + ", Parameter: " + param);
             }
             finally
             {
@@ -179,7 +180,8 @@ class SqlSession
         }
         catch (Exception e)
         {
-            throw AggregateException.with(e, "Unable to prepare statement " + sqlStmt + ", Parameter: " + param);
+            throw AggregateException.with(e, "Unable to prepare statement " + sqlStmt
+                    + ", Parameter: " + param);
         }
     }
 
@@ -235,7 +237,8 @@ class SqlSession
         }
         catch (Exception e)
         {
-            throw AggregateException.with(e, "Unable to execute query " + sqlStmt + ", Parameter: " + param);
+            throw AggregateException.with(e, "Unable to execute query " + sqlStmt + ", Parameter: "
+                    + param);
         }
         finally
         {
@@ -244,9 +247,9 @@ class SqlSession
         }
     }
 
-    SqlSession addBatch(SqlStmt sqlStmt, Object param)
+    void addBatch(SqlStmt sqlStmt, Object param)
     {
-        return trn().addBatch(sqlStmt, param);
+        trn().addBatch(sqlStmt, param);
     }
 
     int[] executeBatch(SqlStmt sqlStmt)
@@ -280,9 +283,6 @@ class SqlSession
     {
         closeStatements();
         closeConnection();
-
-        _stmts = null;
-        _conn = null;
     }
 
     @Override
@@ -291,12 +291,14 @@ class SqlSession
         close();
     }
 
-    // Private methods ===========================================================================
+    // Private methods
+    // ===========================================================================
 
     private SqlTrn trn()
     {
         if (_trn == null)
-            throw new IllegalStateException("No transaction in progress; this operation requires a transaction.");
+            throw new IllegalStateException(
+                    "No transaction in progress; this operation requires a transaction.");
 
         return _trn;
     }
@@ -329,7 +331,8 @@ class SqlSession
         return sql;
     }
 
-    private void setStatementParams(SqlStmt sqlStmt, PreparedStatement stmt, Object model) throws SQLException
+    private void setStatementParams(SqlStmt sqlStmt, PreparedStatement stmt, Object model)
+            throws SQLException
     {
         List<SqlParam> params = sqlStmt.getParams();
 
@@ -340,7 +343,8 @@ class SqlSession
             setStatementParam(stmt, i + 1, params.get(i), model);
     }
 
-    private void setStatementParam(PreparedStatement stmt, int i, SqlParam param, Object model) throws SQLException
+    private void setStatementParam(PreparedStatement stmt, int i, SqlParam param, Object model)
+            throws SQLException
     {
         Object val = getComplexPropertyValue(model, param);
 
@@ -418,8 +422,15 @@ class SqlSession
         if (_stmts == null)
             return;
 
-        for (PreparedStatement stmt : _stmts.values())
-            close(stmt);
+        try
+        {
+            for (PreparedStatement stmt : _stmts.values())
+                close(stmt);
+        }
+        finally
+        {
+            _stmts = null;
+        }
     }
 
     private void close(Statement stmt)
@@ -454,6 +465,10 @@ class SqlSession
         catch (Exception e)
         {
             // Ignore
+        }
+        finally
+        {
+            _conn = null;
         }
     }
 }

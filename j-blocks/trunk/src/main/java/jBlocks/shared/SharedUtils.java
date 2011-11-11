@@ -24,6 +24,11 @@ public class SharedUtils
 {
     public static List<String> splitQuoted(String str, char delimiter)
     {
+        return splitQuoted(str, delimiter, false);
+    }
+
+    public static List<String> splitQuoted(String str, char delimiter, boolean skipEmpty)
+    {
         List<String> tokens = new ArrayList<String>();
 
         if (isBlank(str))
@@ -49,16 +54,23 @@ public class SharedUtils
 
             if (ch == delimiter)
             {
-                tokens.add(strip(sb.substring(start, i).trim(), "\"").replaceAll("\"\"", "\""));
+                str = sb.substring(start, i).trim();
+
+                if (!skipEmpty || str.length() > 0)
+                    tokens.add(str);
+
                 start = i + 1;
             }
         }
 
-        tokens.add(strip(sb.substring(start).trim(), "\"").replaceAll("\"\"", "\""));
+        str = sb.substring(start).trim();
+
+        if (!skipEmpty || str.length() > 0)
+            tokens.add(str);
 
         return tokens;
     }
-
+    
     public static boolean isBlank(String value)
     {
         return value == null || value.trim().length() == 0;

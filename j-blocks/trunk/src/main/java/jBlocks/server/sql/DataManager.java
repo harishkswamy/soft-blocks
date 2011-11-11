@@ -75,7 +75,7 @@ public class DataManager
         try
         {
             Context initContext = new InitialContext();
-            Context envContext = (Context) initContext.lookup("java:/comp/env");
+            Context envContext = (Context) initContext.lookup("java:comp/env");
             _dataSource = (DataSource) envContext.lookup(_jndiName);
         }
         catch (NamingException e)
