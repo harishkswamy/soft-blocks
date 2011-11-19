@@ -18,7 +18,7 @@ public class SunCompiler extends JavaCompiler
     {
         new File(targetPath).mkdirs();
 
-        List<File> srcDirs = new FileTask(sourcePath).getFiles(false);
+        List<File> srcDirs = new FileTask(sourcePath).select(".*\\.java").getFiles(false);
 
         List<String> options = options();
         int idx = options.size();
