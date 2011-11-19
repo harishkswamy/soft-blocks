@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="src" path="modules/src/main/java"/>
-	<classpathentry kind="src" output="build/main/classes" path="build/src/main/java"/>
+	<classpathentry kind="src" output="build/bin" path="build/src/main/java"/>
 	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="var" path="M2_REPO/junit/junit/4.5/junit-4.5.jar"/>
 	<classpathentry kind="var" path="M2_REPO/com/google/code/soft-blocks/j-blocks/1.0.0/j-blocks-1.0.0-server.jar" sourcepath="/WORKSPACE/j-blocks"/>
