@@ -266,7 +266,7 @@ public class SqlClient
 
     public <T> T selectOne(String stmtId, Object paramModel)
     {
-        return session().selectOne(stmt(stmtId), paramModel);
+        return session().<T>selectOne(stmt(stmtId), paramModel);
     }
 
     public <T> List<T> select(String stmtId, Object paramModel)
