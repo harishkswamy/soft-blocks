@@ -16,6 +16,8 @@ package jBlocks.server;
 
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -23,6 +25,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -49,6 +53,16 @@ public class IOUtils
     public interface StreamWriter
     {
         void write(FileOutputStream outputStream) throws Exception;
+    }
+
+    public interface ObjectReader
+    {
+        void read(ObjectInputStream stream) throws Exception;
+    }
+
+    public interface ObjectWriter
+    {
+        void write(ObjectOutputStream stream) throws Exception;
     }
 
     public interface CharReader
@@ -164,6 +178,49 @@ public class IOUtils
             {
                 if (inputStream != null)
                     inputStream.close();
+            }
+        }
+        catch (Exception e)
+        {
+            throw AggregateException.with(e);
+        }
+    }
+
+    public static void readObject(File file, ObjectReader reader)
+    {
+        try
+        {
+            ObjectInputStream is = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
+
+            try
+            {
+                reader.read(is);
+            }
+            finally
+            {
+                is.close();
+            }
+        }
+        catch (Exception e)
+        {
+            throw AggregateException.with(e);
+        }
+    }
+
+    public static void writeObject(File file, ObjectWriter writer)
+    {
+        try
+        {
+            ObjectOutputStream os = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
+
+            try
+            {
+                writer.write(os);
+            }
+            finally
+            {
+                os.flush();
+                os.close();
             }
         }
         catch (Exception e)
