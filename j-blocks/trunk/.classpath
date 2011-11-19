@@ -16,7 +16,7 @@
 	<classpathentry kind="var" path="M2_REPO/org/hamcrest/hamcrest-library/1.1/hamcrest-library-1.1.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/jmock/jmock-legacy/2.4.0/jmock-legacy-2.4.0.jar"/>
 	<classpathentry kind="var" path="M2_REPO/org/objenesis/objenesis/1.0/objenesis-1.0.jar"/>
-	<classpathentry kind="var" path="BB_HOME/lib/build-blocks-0.8.0.221.jar"/>
+	<classpathentry kind="var" path="BB_HOME/lib/build-blocks-0.8.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/build-blocks"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
