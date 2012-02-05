@@ -55,9 +55,9 @@ public class IOUtils
         void write(FileOutputStream outputStream) throws Exception;
     }
 
-    public interface ObjectReader
+    public interface ObjectReader<T>
     {
-        void read(ObjectInputStream stream) throws Exception;
+        T read(ObjectInputStream stream) throws Exception;
     }
 
     public interface ObjectWriter
@@ -186,7 +186,7 @@ public class IOUtils
         }
     }
 
-    public static void readObject(File file, ObjectReader reader)
+    public static <T> T readObject(File file, ObjectReader<T> reader)
     {
         try
         {
@@ -194,7 +194,7 @@ public class IOUtils
 
             try
             {
-                reader.read(is);
+                return reader.read(is);
             }
             finally
             {
