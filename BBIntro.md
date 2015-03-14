@@ -1,0 +1,72 @@
+
+
+# Introduction #
+
+Our goal to _build a project_ suggests we want to _do_ something and the best way to express this intent in computers,
+I believe, is through a programming language. Java fits this bill and its tools go beyond in helping us achieve this goal.
+
+We, however, do the same set of things to build most projects and that means we can abstract away these common tasks into
+an API and extend / compose / reuse it for all projects.
+
+Case in point, the code below could actually suffice to build a lot of Java projects by simply extending the JavaProject
+framework class.
+```
+@ProjectInfo(version = "1.0.0")
+public class JBlocks extends JavaProject
+{
+    public JBlocks()
+    {
+        super("1.5");
+
+        deps("org.slf4j:slf4j-api:jar:1.5.0");
+
+        testDeps("junit:junit:jar:4.5", "cglib:cglib-nodep:jar:2.1_3", "org.objenesis:objenesis:jar:1.0",
+            "org.jmock:jmock:jar:2.4.0", "org.jmock:jmock-legacy:jar:2.4.0", "org.hamcrest:hamcrest-core:jar:1.1",
+            "org.hamcrest:hamcrest-library:jar:1.1");
+
+        runtimeDeps("ch.qos.logback:logback-core:jar:0.9.9", "ch.qos.logback:logback-classic:jar:0.9.9");
+    }
+}
+```
+
+And, building the project jar with the above build code could be as simple as typing ...
+
+```
+C:\j-blocks> bb j:jar
+```
+
+And to see what else the above build code could do, just type ...
+
+```
+C:\j-blocks> bb
+```
+
+```
+Build Blocks
+Version : 0.9.0.SNAPSHOT
+--------------------------------------------------------------
+Usage:
+    bb <options> <tasks>
+Options:
+    -D<name>=<value> : Set builder property
+    -e               : Export the project's build jar to build-blocks' lib
+    -t               : Print trace messages
+--------------------------------------------------------------
+
+--------------------------------------------------------------
+Tasks available for j-blocks:
+
+    Tasks from com.google.code.soft-blocks.j-blocks:
+
+    clean            : Cleans the project's target space.
+    help             : Prints the project's help text.
+
+    Tasks from buildBlocks.j:
+
+    clean            : Cleans the project's main target space.
+    compile          : Compiles the project in the target space.
+    install          : Builds and publishes the project's jar to the local repository.
+    jar              : Builds and packages the project in a jar.
+    test             : Builds and runs the test suite for the project.
+--------------------------------------------------------------
+```
